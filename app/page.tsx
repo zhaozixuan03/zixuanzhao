@@ -37,13 +37,20 @@ export default async function Home() {
 
       <ContributionGrid dates={postDates} totalPosts={posts.length} totalWords={totalWords} />
 
-      <section className="py-10">
-        {authed && (
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-stone-400 text-sm font-sans">写点什么？</span>
-            <a href="/write" className="text-[12px] px-4 py-1.5 rounded-full bg-[#3B6D11] text-[#EAF3DE] font-sans">去写 →</a>
+      {authed && (
+        <a href="/write" className="block group my-10">
+          <div className="border border-dashed border-stone-300 hover:border-[#97C459] rounded-2xl px-8 py-8 transition-all duration-300 hover:bg-[#f0f5e8] cursor-text">
+            <div className="font-serif text-[22px] text-stone-300 group-hover:text-[#97C459] transition-colors duration-300 leading-relaxed">
+              今天想写点什么？
+            </div>
+            <div className="mt-3 text-[12px] text-stone-300 group-hover:text-[#b5cc8e] font-sans transition-colors duration-300">
+              点击开始写 · 支持文字和图片
+            </div>
           </div>
-        )}
+        </a>
+      )}
+
+      <section className="py-10">
         <div className="text-[10px] tracking-[0.12em] text-stone-400 font-sans mb-6">RECENT</div>
         {posts.length === 0 ? (
           <div className="py-12 text-center">
