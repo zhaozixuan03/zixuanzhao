@@ -5,7 +5,7 @@ const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
 
 export const supabase = createClient(url, key)
 
-export type Visibility = 'public' | 'quiet' | 'private'
+export type Visibility = 'public' | 'private'
 
 export interface Post {
   id: string

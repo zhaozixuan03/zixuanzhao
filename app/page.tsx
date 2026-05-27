@@ -9,7 +9,7 @@ import MasonryGallery from '@/components/MasonryGallery'
 export const revalidate = 0
 
 async function getData(authed: boolean) {
-  const visFilter = authed ? ['public', 'quiet', 'private'] : ['public', 'quiet']
+  const visFilter = authed ? ['public', 'private'] : ['public']
   const [postsRes, photosRes] = await Promise.all([
     supabase.from('posts').select('*').in('visibility', visFilter).order('created_at', { ascending: false }),
     supabase.from('photos').select('*').order('created_at', { ascending: false }),

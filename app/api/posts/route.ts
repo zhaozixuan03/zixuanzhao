@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   let query = supabase.from('posts').select('*').order('created_at', { ascending: false })
 
   if (!authed) {
-    query = query.in('visibility', ['public', 'quiet'])
+    query = query.in('visibility', ['public'])
   }
 
   const { data, error } = await query

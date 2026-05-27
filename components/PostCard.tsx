@@ -9,13 +9,11 @@ interface Props {
 
 const VIS_DOT: Record<Post['visibility'], string> = {
   public: 'bg-[#97C459]',
-  quiet: 'border border-stone-300 bg-transparent',
   private: 'border border-dashed border-stone-300 bg-transparent',
 }
 
 const VIS_LABEL: Record<Post['visibility'], string> = {
   public: '公开',
-  quiet: '有链接才能看',
   private: '只有自己',
 }
 

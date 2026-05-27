@@ -44,9 +44,6 @@ export default async function PostPage({ params }: Props) {
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <span className="text-[11px] text-stone-400 font-sans">{formatDateFull(post.created_at)}</span>
-            {post.visibility === 'quiet' && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full border border-stone-200 text-stone-400 font-sans">有链接才能看</span>
-            )}
             {post.visibility === 'private' && (
               <span className="text-[10px] px-2 py-0.5 rounded-full border border-dashed border-stone-300 text-stone-400 font-sans">私密</span>
             )}

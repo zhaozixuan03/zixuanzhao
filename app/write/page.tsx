@@ -3,13 +3,12 @@ import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Visibility } from '@/lib/supabase'
-import { Eye, EyeOff, Lock, ChevronDown, Trash2 } from 'lucide-react'
+import { Eye, Lock, ChevronDown, Trash2 } from 'lucide-react'
 
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false })
 
 const VIS_OPTIONS: { value: Visibility; label: string; desc: string; icon: React.ReactNode }[] = [
   { value: 'public', label: '公开', desc: '所有人可见', icon: <Eye size={13} /> },
-  { value: 'quiet', label: '静悄悄', desc: '有链接才能看', icon: <EyeOff size={13} /> },
   { value: 'private', label: '私密', desc: '只有你自己', icon: <Lock size={13} /> },
 ]
 
