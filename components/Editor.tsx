@@ -19,7 +19,7 @@ interface Props {
 async function compressImage(file: File, maxSizeMB = 2): Promise<File> {
   if (file.size < maxSizeMB * 1024 * 1024) return file
   return new Promise(resolve => {
-    const img = new Image()
+    const img = document.createElement('img') as HTMLImageElement
     const url = URL.createObjectURL(file)
     img.onload = () => {
       const canvas = document.createElement('canvas')
