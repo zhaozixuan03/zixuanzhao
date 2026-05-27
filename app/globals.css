@@ -79,3 +79,13 @@ body {
 @media (min-width: 640px) {
   .masonry-grid { columns: 3; }
 }
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .post-content { font-size: 16px; }
+  .masonry-grid { columns: 2; }
+}
+
+@media (min-width: 1280px) {
+  .masonry-grid { columns: 4; }
+}
