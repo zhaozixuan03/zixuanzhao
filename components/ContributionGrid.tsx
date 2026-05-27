@@ -61,11 +61,11 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
 
     const wk = Math.ceil(cells.length / DAYS)
 
+    console.log('today cell:', todayIdx, cells[todayIdx])
     return { grid: cells, todayIdx, thisYear, wk }
   }, [dates])
 
   const todayWrote = todayIdx >= 0 && grid[todayIdx]?.count > 0
-  console.log('todayIdx:', todayIdx, 'todayCell:', grid[todayIdx])
 
   const monthLabels: { w: number; label: string }[] = []
   let prevMonth = -1
@@ -161,7 +161,7 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
                           width: CELL,
                           height: CELL,
                           background: isToday ? '#3B6D11' : COLORS[cell.level],
-                          transform: isToday ? 'scale(1.4)' : undefined,
+                          transform: isToday ? 'scale(1.35)' : undefined,
                           position: isToday ? 'relative' : undefined,
                           zIndex: isToday ? 1 : undefined,
                         }}

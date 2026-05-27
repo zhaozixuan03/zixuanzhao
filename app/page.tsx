@@ -38,6 +38,12 @@ export default async function Home() {
       <ContributionGrid dates={postDates} totalPosts={posts.length} totalWords={totalWords} />
 
       <section className="py-10">
+        {authed && (
+          <div className="flex justify-between items-center mb-6">
+            <span className="text-stone-400 text-sm font-sans">写点什么？</span>
+            <a href="/write" className="text-[12px] px-4 py-1.5 rounded-full bg-[#3B6D11] text-[#EAF3DE] font-sans">去写 →</a>
+          </div>
+        )}
         <div className="text-[10px] tracking-[0.12em] text-stone-400 font-sans mb-6">RECENT</div>
         {posts.length === 0 ? (
           <div className="py-12 text-center">
