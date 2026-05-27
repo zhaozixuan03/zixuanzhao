@@ -24,7 +24,7 @@ export default async function Home() {
   const totalWords = posts.reduce((sum: number, p: any) => sum + countWords(p.content_text || ''), 0)
 
   return (
-    <main className="max-w-[620px] mx-auto px-5 pb-20">
+    <main className="max-w-[680px] xl:max-w-[780px] mx-auto px-5 pb-20">
       <Nav isAuthed={authed} />
 
       <div className="pb-10 border-b border-stone-200">
