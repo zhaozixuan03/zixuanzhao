@@ -121,7 +121,7 @@ function WriteForm() {
   const currentVis = VIS_OPTIONS.find(v => v.value === visibility)!
 
   return (
-    <main className="max-w-[620px] mx-auto px-5 pb-20">
+    <main className="max-w-[680px] xl:max-w-[780px] mx-auto px-5 pb-20">
       {/* Minimal header */}
       <div className="flex justify-between items-center py-6 mb-2">
         <a href="/" className="text-[11px] tracking-[0.15em] text-stone-400 font-sans">← zixuanzhao</a>
