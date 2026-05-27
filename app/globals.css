@@ -10,8 +10,12 @@
 }
 
 html {
-  font-family: 'Georgia', 'Times New Roman', serif;
+  font-family: 'Noto Serif SC', 'Georgia', 'Times New Roman', serif;
   -webkit-font-smoothing: antialiased;
+}
+
+h1, h2 {
+  font-family: 'Noto Serif SC', 'Georgia', 'Times New Roman', serif;
 }
 
 body {
@@ -20,7 +24,7 @@ body {
 }
 
 .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-.font-serif { font-family: 'Georgia', 'Times New Roman', serif; letter-spacing: -0.02em; }
+.font-serif { font-family: 'Noto Serif SC', 'Georgia', 'Times New Roman', serif; letter-spacing: -0.02em; }
 .font-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
 
 /* Tiptap editor styles */
@@ -61,7 +65,7 @@ body {
 }
 
 /* Post content rendering */
-.post-content { font-family: 'Georgia', serif; font-size: 18px; line-height: 2; color: #1c1c1a; }
+.post-content { font-family: 'Noto Serif SC', 'Georgia', serif; font-size: 18px; line-height: 2; color: #1c1c1a; }
 .post-content p { margin-bottom: 1.4em; }
 .post-content h2 { font-size: 1.2em; font-weight: 500; margin: 2em 0 0.6em; font-family: -apple-system, sans-serif; }
 .post-content img { max-width: 100%; border-radius: 8px; margin: 2em 0; display: block; }

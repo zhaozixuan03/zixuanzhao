@@ -65,6 +65,7 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
   }, [dates])
 
   const todayWrote = todayIdx >= 0 && grid[todayIdx]?.count > 0
+  console.log('todayIdx:', todayIdx, 'todayCell:', grid[todayIdx])
 
   const monthLabels: { w: number; label: string }[] = []
   let prevMonth = -1
@@ -160,7 +161,9 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
                           width: CELL,
                           height: CELL,
                           background: isToday ? '#3B6D11' : COLORS[cell.level],
-                          transform: isToday ? 'scale(1.3)' : undefined,
+                          transform: isToday ? 'scale(1.4)' : undefined,
+                          position: isToday ? 'relative' : undefined,
+                          zIndex: isToday ? 1 : undefined,
                         }}
                         title={`${cell.date.toLocaleDateString('zh')}${cell.count > 0 ? ` · 写了 ${cell.count} 篇` : ''}`}
                       />

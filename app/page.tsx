@@ -49,7 +49,7 @@ export default async function Home() {
         )}
       </section>
 
-      {photos.length > 0 && <MasonryGallery photos={photos} />}
+      <MasonryGallery photos={photos} isOwner={authed} />
 
       <footer className="pt-6 border-t border-stone-200 flex justify-between items-center">
         <span className="text-[11px] text-stone-400 font-sans">zixuanzhao.com</span>
