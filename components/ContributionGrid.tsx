@@ -1,33 +1,39 @@
 'use client'
 import { useMemo } from 'react'
+import Link from 'next/link'
 
 interface Props {
-  dates: string[]  // ISO date strings of days written
+  dates: string[]
   totalPosts: number
   totalWords: number
 }
 
 const WEEKS = 53
 const DAYS = 7
+const CELL = 11
+const GAP = 3
+const STEP = CELL + GAP
 
 function getLevel(count: number): number {
   if (count === 0) return 0
-  if (count === 1) return 2
-  if (count <= 3) return 3
+  if (count === 1) return 1
+  if (count === 2) return 2
+  if (count <= 4) return 3
   return 4
 }
 
-const COLORS = ['#e8e8e4', '#C0DD97', '#97C459', '#639922', '#3B6D11']
+const COLORS = ['#e2e8d9', '#C0DD97', '#97C459', '#639922', '#3B6D11']
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const DAY_LABELS: Record<number, string> = { 1: 'Mon', 3: 'Wed', 5: 'Fri' }
 
 export default function ContributionGrid({ dates, totalPosts, totalWords }: Props) {
-  const { grid, todayIdx, maxStreak, thisYear } = useMemo(() => {
+  const { grid, todayIdx, thisYear, wk } = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
     const start = new Date(today)
     start.setDate(start.getDate() - (WEEKS * DAYS - 1))
 
-    // Count writes per day
     const counts: Record<string, number> = {}
     dates.forEach(d => {
       const key = d.slice(0, 10)
@@ -49,22 +55,30 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` === todayKey
     })
 
-    // Calculate streak
-    let maxStreak = 0, cur = 0
-    cells.forEach(c => {
-      if (c.count > 0) { cur++; maxStreak = Math.max(maxStreak, cur) }
-      else cur = 0
-    })
-
     const thisYear = Object.entries(counts)
       .filter(([k]) => k.startsWith(new Date().getFullYear().toString()))
       .filter(([, v]) => v > 0).length
 
-    return { grid: cells, todayIdx, maxStreak, thisYear }
+    const wk = Math.ceil(cells.length / DAYS)
+
+    return { grid: cells, todayIdx, thisYear, wk }
   }, [dates])
 
   const todayWrote = todayIdx >= 0 && grid[todayIdx]?.count > 0
-  const wk = Math.ceil(grid.length / DAYS)
+
+  const monthLabels: { w: number; label: string }[] = []
+  let prevMonth = -1
+  for (let w = 0; w < wk; w++) {
+    const cell = grid[w * DAYS]
+    if (!cell) continue
+    const m = cell.date.getMonth()
+    if (m !== prevMonth) {
+      monthLabels.push({ w, label: MONTHS[m] })
+      prevMonth = m
+    }
+  }
+
+  const LEFT_OFFSET = 28 + 4
 
   return (
     <div className="py-10 border-b border-stone-200">
@@ -87,62 +101,97 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
         </div>
       </div>
 
-      {/* Grid */}
       <div className="overflow-x-auto">
-        <div className="flex gap-[3px]" style={{ width: `${wk * 14}px` }}>
-          {Array.from({ length: wk }).map((_, w) => (
-            <div key={w} className="flex flex-col gap-[3px]">
-              {Array.from({ length: DAYS }).map((_, d) => {
-                const idx = w * DAYS + d
-                const cell = grid[idx]
-                if (!cell) return <div key={d} style={{ width: 11, height: 11 }} />
-                const isToday = idx === todayIdx
-                return (
-                  <div
-                    key={d}
-                    className="rounded-[2px] grid-cell"
-                    style={{
-                      width: 11, height: 11,
-                      background: COLORS[cell.level],
-                      outline: isToday ? '1.5px solid #3B6D11' : 'none',
-                      outlineOffset: '1px',
-                    }}
-                    title={`${cell.date.toLocaleDateString('zh')}${cell.count > 0 ? ` · 写了 ${cell.count} 篇` : ''}`}
-                  />
-                )
-              })}
+        <div style={{ display: 'inline-block' }}>
+          {/* Month labels */}
+          <div style={{ position: 'relative', height: 14, marginBottom: 4, marginLeft: LEFT_OFFSET }}>
+            {monthLabels.map(({ w, label }) => (
+              <span
+                key={w}
+                style={{
+                  position: 'absolute',
+                  left: w * STEP,
+                  fontSize: 9,
+                  color: '#aaa',
+                  fontFamily: '-apple-system, sans-serif',
+                  lineHeight: '14px',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+
+          {/* Weekday labels + cells */}
+          <div style={{ display: 'flex', gap: 4 }}>
+            <div style={{ width: 28, display: 'flex', flexDirection: 'column', gap: GAP }}>
+              {Array.from({ length: DAYS }).map((_, d) => (
+                <div
+                  key={d}
+                  style={{
+                    height: CELL,
+                    lineHeight: `${CELL}px`,
+                    fontSize: 9,
+                    color: '#aaa',
+                    textAlign: 'right',
+                    fontFamily: '-apple-system, sans-serif',
+                    paddingRight: 2,
+                  }}
+                >
+                  {DAY_LABELS[d] ?? ''}
+                </div>
+              ))}
             </div>
-          ))}
+
+            <div style={{ display: 'flex', gap: GAP }}>
+              {Array.from({ length: wk }).map((_, w) => (
+                <div key={w} style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
+                  {Array.from({ length: DAYS }).map((_, d) => {
+                    const idx = w * DAYS + d
+                    const cell = grid[idx]
+                    if (!cell) return <div key={d} style={{ width: CELL, height: CELL }} />
+                    const isToday = idx === todayIdx
+                    return (
+                      <div
+                        key={d}
+                        className="rounded-[2px] grid-cell"
+                        style={{
+                          width: CELL,
+                          height: CELL,
+                          background: isToday ? '#3B6D11' : COLORS[cell.level],
+                          transform: isToday ? 'scale(1.3)' : undefined,
+                        }}
+                        title={`${cell.date.toLocaleDateString('zh')}${cell.count > 0 ? ` · 写了 ${cell.count} 篇` : ''}`}
+                      />
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="flex items-center gap-1 mt-2 justify-end">
-        <span className="text-[10px] text-stone-400 font-sans">少</span>
-        {COLORS.map((c, i) => (
-          <div key={i} className="rounded-[2px]" style={{ width: 9, height: 9, background: c }} />
-        ))}
-        <span className="text-[10px] text-stone-400 font-sans">多</span>
-      </div>
-
-      {/* Today banner */}
-      <div className={`mt-5 px-5 py-4 rounded-lg flex justify-between items-center ${todayWrote ? 'bg-stone-100' : 'bg-[#EAF3DE]'}`}>
-        {todayWrote ? (
-          <>
-            <div>
-              <div className="text-[14px] font-medium text-stone-700 font-sans">今天写了 ✓</div>
-              <div className="text-[12px] text-stone-500 font-sans mt-0.5">今年第 {thisYear} 次，慢慢来。</div>
-            </div>
-            <a href="/write" className="text-[12px] px-4 py-2 rounded-full bg-stone-200 text-stone-500 font-sans">继续写</a>
-          </>
-        ) : (
-          <>
-            <div>
-              <div className="text-[14px] font-medium text-[#3B6D11] font-sans">今天还没种字</div>
-              <div className="text-[12px] text-[#639922] font-sans mt-0.5">哪怕一句话，今天这格就亮了 :)</div>
-            </div>
-            <a href="/write" className="text-[12px] px-4 py-2 rounded-full bg-[#3B6D11] text-[#EAF3DE] font-sans">去写 →</a>
-          </>
-        )}
+      <div className="flex items-center justify-between mt-3">
+        <div>
+          {todayWrote ? (
+            <span className="text-[12px] font-sans" style={{ color: '#639922' }}>
+              今天亮了 · 今年第 {thisYear} 次 ✦
+            </span>
+          ) : (
+            <Link href="/write" className="text-[12px] font-sans text-stone-400 hover:text-stone-700 transition-colors">
+              今天还没种字——哪怕一句话 →
+            </Link>
+          )}
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="text-[10px] text-stone-400 font-sans">少</span>
+          {COLORS.map((c, i) => (
+            <div key={i} className="rounded-[2px]" style={{ width: 9, height: 9, background: c }} />
+          ))}
+          <span className="text-[10px] text-stone-400 font-sans">多</span>
+        </div>
       </div>
     </div>
   )

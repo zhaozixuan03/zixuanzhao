@@ -15,12 +15,12 @@ html {
 }
 
 body {
-  background: #fafaf8;
+  background: #f5f4f0;
   color: #1a1a18;
 }
 
 .font-sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-.font-serif { font-family: 'Georgia', 'Times New Roman', serif; }
+.font-serif { font-family: 'Georgia', 'Times New Roman', serif; letter-spacing: -0.02em; }
 .font-mono { font-family: 'JetBrains Mono', 'Fira Code', monospace; }
 
 /* Tiptap editor styles */
@@ -61,12 +61,15 @@ body {
 }
 
 /* Post content rendering */
-.post-content { font-family: 'Georgia', serif; font-size: 17px; line-height: 1.85; color: #1a1a18; }
+.post-content { font-family: 'Georgia', serif; font-size: 18px; line-height: 2; color: #1c1c1a; }
 .post-content p { margin-bottom: 1.4em; }
 .post-content h2 { font-size: 1.2em; font-weight: 500; margin: 2em 0 0.6em; font-family: -apple-system, sans-serif; }
 .post-content img { max-width: 100%; border-radius: 8px; margin: 2em 0; display: block; }
 .post-content blockquote { border-left: 3px solid var(--green-pale); padding-left: 1.25rem; color: #666; margin: 1.5em 0; }
 .post-content a { color: var(--green-deep); }
+
+/* Warmer border override */
+.border-stone-200 { border-color: #e8e6e0; }
 
 /* Contribution grid */
 .grid-cell { transition: opacity 0.1s; }

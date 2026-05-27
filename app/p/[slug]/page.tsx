@@ -36,7 +36,7 @@ export default async function PostPage({ params }: Props) {
   if (post.visibility === 'private' && !authed) notFound()
 
   return (
-    <main className="max-w-[680px] xl:max-w-[780px] mx-auto px-5 pb-20">
+    <main className="max-w-[860px] mx-auto px-6 md:px-16 pb-20">
       <Nav isAuthed={authed} />
 
       <article>

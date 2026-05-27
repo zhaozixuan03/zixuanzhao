@@ -24,16 +24,15 @@ export default async function Home() {
   const totalWords = posts.reduce((sum: number, p: any) => sum + countWords(p.content_text || ''), 0)
 
   return (
-    <main className="max-w-[680px] xl:max-w-[780px] mx-auto px-5 pb-20">
+    <main className="max-w-[860px] mx-auto px-6 md:px-16 pb-20">
       <Nav isAuthed={authed} />
 
       <div className="pb-10 border-b border-stone-200">
-        <div className="text-[10px] tracking-[0.12em] text-[#639922] font-sans mb-4">Nr 3 · {new Date().getFullYear()}</div>
-        <h1 className="font-serif text-[26px] font-normal leading-[1.65] text-stone-800 mb-3">
+        <h1 className="font-serif text-[42px] md:text-[64px] font-normal leading-[1.3] text-stone-800 mb-3">
           有时候，真正的抵达，<br />
           藏在出发之<span className="text-[#639922]">前</span>。
         </h1>
-        <p className="text-[13px] text-stone-400 leading-relaxed font-sans">这里是我放字的地方。方方面面，随时随地。</p>
+        <p className="text-[14px] text-stone-400 mt-4 font-sans">这里是我放字的地方。方方面面，随时随地。</p>
       </div>
 
       <ContributionGrid dates={postDates} totalPosts={posts.length} totalWords={totalWords} />
