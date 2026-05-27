@@ -16,6 +16,26 @@ interface Props {
   placeholder?: string
 }
 
+async function compressImage(file: File, maxSizeMB = 2): Promise<File> {
+  if (file.size < maxSizeMB * 1024 * 1024) return file
+  return new Promise(resolve => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ratio = Math.min(1, Math.sqrt((maxSizeMB * 1024 * 1024) / file.size))
+      canvas.width = img.width * ratio
+      canvas.height = img.height * ratio
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob(blob => {
+        resolve(new File([blob!], file.name, { type: 'image/jpeg' }))
+      }, 'image/jpeg', 0.85)
+      URL.revokeObjectURL(url)
+    }
+    img.src = url
+  })
+}
+
 export default function Editor({ content = '', onChange, placeholder = '写点什么…' }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -38,8 +58,9 @@ export default function Editor({ content = '', onChange, placeholder = '写点�
   if (!editor) return null
 
   const uploadImage = async (file: File) => {
+    const compressed = await compressImage(file)
     const formData = new FormData()
-    formData.append('file', file)
+    formData.append('file', compressed)
     try {
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
       const { url } = await res.json()

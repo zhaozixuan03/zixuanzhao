@@ -9,9 +9,30 @@ interface Props {
   isOwner: boolean
 }
 
+async function compressImage(file: File, maxSizeMB = 2): Promise<File> {
+  if (file.size < maxSizeMB * 1024 * 1024) return file
+  return new Promise(resolve => {
+    const img = new Image()
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      const canvas = document.createElement('canvas')
+      const ratio = Math.min(1, Math.sqrt((maxSizeMB * 1024 * 1024) / file.size))
+      canvas.width = img.width * ratio
+      canvas.height = img.height * ratio
+      canvas.getContext('2d')!.drawImage(img, 0, 0, canvas.width, canvas.height)
+      canvas.toBlob(blob => {
+        resolve(new File([blob!], file.name, { type: 'image/jpeg' }))
+      }, 'image/jpeg', 0.85)
+      URL.revokeObjectURL(url)
+    }
+    img.src = url
+  })
+}
+
 export default function MasonryGallery({ photos, isOwner }: Props) {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
   const [uploading, setUploading] = useState(false)
+  const [managing, setManaging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const touchStartX = useRef(0)
 
@@ -32,8 +53,9 @@ export default function MasonryGallery({ photos, isOwner }: Props) {
     const file = e.target.files?.[0]
     if (!file) return
     setUploading(true)
+    const compressed = await compressImage(file)
     const fd = new FormData()
-    fd.append('file', file)
+    fd.append('file', compressed)
     await fetch('/api/upload', { method: 'POST', body: fd })
     window.location.reload()
   }
@@ -75,6 +97,12 @@ export default function MasonryGallery({ photos, isOwner }: Props) {
               >
                 {uploading ? '上传中…' : '+ 上传照片'}
               </button>
+              <button
+                onClick={() => setManaging(m => !m)}
+                className={`text-[11px] font-sans transition-colors ${managing ? 'text-red-400 hover:text-red-600' : 'text-stone-400 hover:text-stone-700'}`}
+              >
+                {managing ? '完成' : '管理'}
+              </button>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -92,7 +120,7 @@ export default function MasonryGallery({ photos, isOwner }: Props) {
           <div
             key={photo.id}
             className="masonry-item cursor-pointer group relative overflow-hidden rounded-md"
-            onClick={() => setSelectedIdx(idx)}
+            onClick={() => !managing && setSelectedIdx(idx)}
           >
             <img
               src={photo.url}
@@ -100,15 +128,15 @@ export default function MasonryGallery({ photos, isOwner }: Props) {
               className="w-full block rounded-md transition-opacity group-hover:opacity-90"
               loading="lazy"
             />
-            {photo.caption && (
+            {photo.caption && !managing && (
               <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity rounded-md flex items-end p-3">
                 <p className="text-white text-[12px] leading-snug">{photo.caption}</p>
               </div>
             )}
-            {isOwner && (
+            {isOwner && managing && (
               <button
                 onClick={e => handleDelete(e, photo)}
-                className="absolute top-1.5 right-1.5 w-5 h-5 bg-red-500 rounded-full text-white text-[10px] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 rounded-full text-white text-[11px] flex items-center justify-center z-10"
                 title="删除"
               >
                 ✕
