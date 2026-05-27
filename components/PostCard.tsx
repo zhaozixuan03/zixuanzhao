@@ -48,19 +48,16 @@ export default function PostCard({ post, isOwner }: Props) {
           <div className="flex items-center gap-1.5">
             <div className={`w-[6px] h-[6px] rounded-full ${VIS_DOT[post.visibility]}`} title={VIS_LABEL[post.visibility]} />
           </div>
+          {/* Thumbnail on the right */}
+          {firstImage && !isPrivate && (
+            <img
+              src={firstImage}
+              alt=""
+              className="w-20 h-20 object-cover rounded"
+            />
+          )}
         </div>
       </div>
-
-      {/* Thumbnail if has image and not private */}
-      {firstImage && !isPrivate && (
-        <div className="mt-3">
-          <img
-            src={firstImage}
-            alt=""
-            className="w-16 h-16 object-cover rounded"
-          />
-        </div>
-      )}
     </Link>
   )
 }

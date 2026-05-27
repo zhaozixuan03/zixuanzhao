@@ -38,13 +38,16 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
     for (let i = 0; i < WEEKS * DAYS; i++) {
       const d = new Date(start)
       d.setDate(d.getDate() + i)
-      const key = d.toISOString().slice(0, 10)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
       const count = counts[key] || 0
       cells.push({ date: d, count, level: getLevel(count) })
     }
 
-    const todayKey = today.toISOString().slice(0, 10)
-    const todayIdx = cells.findIndex(c => c.date.toISOString().slice(0, 10) === todayKey)
+    const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+    const todayIdx = cells.findIndex(c => {
+      const d = c.date
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` === todayKey
+    })
 
     // Calculate streak
     let maxStreak = 0, cur = 0

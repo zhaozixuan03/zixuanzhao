@@ -13,11 +13,22 @@ export default async function PostPage({ params }: Props) {
   const { slug } = await params
   const authed = await isAuthenticated()
 
-  const { data: post } = await supabase
+  let { data: post } = await supabase
     .from('posts')
     .select('*')
     .eq('slug', slug)
     .single()
+
+  if (!post) {
+    const decoded = decodeURIComponent(slug)
+    if (decoded !== slug) {
+      ;({ data: post } = await supabase
+        .from('posts')
+        .select('*')
+        .eq('slug', decoded)
+        .single())
+    }
+  }
 
   if (!post) notFound()
 
