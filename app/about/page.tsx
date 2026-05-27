@@ -5,9 +5,9 @@ export default async function About() {
   const authed = await isAuthenticated()
 
   return (
-    <main className="max-w-[620px] mx-auto px-5 pb-20">
+    <main className="max-w-[680px] xl:max-w-[780px] mx-auto px-5 pb-20">
       <Nav isAuthed={authed} />
-      <article className="post-content max-w-[480px]">
+      <article className="post-content max-w-[600px]">
         <p>
           zixuanzhao。马上毕业，要出发了。
         </p>
