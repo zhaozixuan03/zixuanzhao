@@ -17,12 +17,12 @@ const STEP = CELL + GAP
 function getLevel(count: number): number {
   if (count === 0) return 0
   if (count === 1) return 1
-  if (count === 2) return 2
-  if (count <= 4) return 3
-  return 4
+  if (count <= 3) return 2
+  return 3
 }
 
-const COLORS = ['#e2e8d9', '#C0DD97', '#97C459', '#639922', '#3B6D11']
+// Index 0-3: 0篇 / 1篇 / 2-3篇 / 4篇+；今天格子单独处理，不走这个数组
+const COLORS = ['#e2e8d9', '#C0DD97', '#97C459', '#639922']
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 const DAY_LABELS: Record<number, string> = { 1: 'Mon', 3: 'Wed', 5: 'Fri' }
 
@@ -153,6 +153,8 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
                     const cell = grid[idx]
                     if (!cell) return <div key={d} style={{ width: CELL, height: CELL }} />
                     const isToday = idx === todayIdx
+                    const todayWrote = isToday && cell.count > 0
+                    const todayEmpty = isToday && cell.count === 0
                     return (
                       <div
                         key={d}
@@ -160,8 +162,9 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
                         style={{
                           width: CELL,
                           height: CELL,
-                          background: isToday ? '#3B6D11' : COLORS[cell.level],
-                          transform: isToday ? 'scale(1.35)' : undefined,
+                          background: todayWrote ? '#3B6D11' : todayEmpty ? 'transparent' : COLORS[cell.level],
+                          outline: todayEmpty ? '1.5px dashed #97C459' : undefined,
+                          transform: isToday ? 'scale(1.3)' : undefined,
                           position: isToday ? 'relative' : undefined,
                           zIndex: isToday ? 1 : undefined,
                         }}
