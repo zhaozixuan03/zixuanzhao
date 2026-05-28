@@ -6,7 +6,7 @@ interface Props { post: Post; isOwner: boolean }
 
 export default function PostCard({ post }: Props) {
   const bg = post.card_color || '#A8DADC'
-  const tc = cardTextColor(bg)
+  const tc = post.card_text_color || cardTextColor(bg)
 
   return (
     <Link

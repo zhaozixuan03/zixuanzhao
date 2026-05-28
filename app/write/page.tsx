@@ -5,6 +5,52 @@ import dynamic from 'next/dynamic'
 import { Visibility } from '@/lib/supabase'
 import { Eye, Lock, ChevronDown, Trash2 } from 'lucide-react'
 
+function hexToHsv(hex: string): [number, number, number] {
+  const r = parseInt(hex.slice(1, 3), 16) / 255
+  const g = parseInt(hex.slice(3, 5), 16) / 255
+  const b = parseInt(hex.slice(5, 7), 16) / 255
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min
+  const s = max === 0 ? 0 : d / max
+  const v = max
+  let h = 0
+  if (d !== 0) {
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60
+    else if (max === g) h = ((b - r) / d + 2) * 60
+    else h = ((r - g) / d + 4) * 60
+  }
+  return [h, s, v]
+}
+
+function hslToHex(h: number, s: number, l: number): string {
+  const f = (n: number) => {
+    const k = (n + h / 30) % 12
+    const a = s * Math.min(l, 1 - l)
+    return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+  }
+  return '#' + [f(0), f(8), f(4)].map(x =>
+    Math.round(x * 255).toString(16).padStart(2, '0')
+  ).join('')
+}
+
+function getLuminance(hex: string): number {
+  const r = parseInt(hex.slice(1, 3), 16) / 255
+  const g = parseInt(hex.slice(3, 5), 16) / 255
+  const b = parseInt(hex.slice(5, 7), 16) / 255
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b
+}
+
+function getTextSchemes(bg: string): [string, string, string] {
+  const [h, s, v] = hexToHsv(bg)
+  const light = getLuminance(bg) > 0.55
+  return [
+    light
+      ? hslToHex(h, Math.min(1, s * 1.2), v * 0.28)
+      : hslToHex(h, s * 0.25, Math.min(0.95, v * 1.9 + 0.15)),
+    light ? '#1a1a18' : '#f8f8f5',
+    light ? '#1a1a18' : '#ffffff',
+  ]
+}
+
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false })
 const ColorPicker = dynamic(() => import('@/components/ColorPicker'), { ssr: false })
 const TagInput = dynamic(() => import('@/components/TagInput'), { ssr: false })
@@ -26,6 +72,7 @@ function WriteForm() {
   const [content, setContent] = useState('')
   const [visibility, setVisibility] = useState<Visibility>('private')
   const [cardColor, setCardColor] = useState('#A8DADC')
+  const [cardTextColor, setCardTextColor] = useState('#1a1a18')
   const [tags, setTags] = useState<string[]>([])
   const [showVisMenu, setShowVisMenu] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -47,6 +94,7 @@ function WriteForm() {
               setContent(post.content || '')
               setVisibility(post.visibility)
               if (post.card_color) setCardColor(post.card_color)
+              if (post.card_text_color) setCardTextColor(post.card_text_color)
               if (post.tags) setTags(post.tags)
             }
           })
@@ -69,8 +117,8 @@ function WriteForm() {
     setSaving(true)
     const method = editId ? 'PATCH' : 'POST'
     const body = editId
-      ? { id: editId, title, content, visibility, card_color: cardColor, tags }
-      : { title, content, visibility, card_color: cardColor, tags }
+      ? { id: editId, title, content, visibility, card_color: cardColor, card_text_color: cardTextColor, tags }
+      : { title, content, visibility, card_color: cardColor, card_text_color: cardTextColor, tags }
 
     const res = await fetch('/api/posts', {
       method,
@@ -80,11 +128,12 @@ function WriteForm() {
 
     if (res.ok) {
       const post = await res.json()
-      setFlashing(true)
-      setTimeout(() => { setFlashing(false); setSaved(true) }, 600)
-      setTimeout(() => router.push(`/p/${post.slug}?new=1`), 1200)
+      setTimeout(() => { setSaving(false); setSaved(true) }, 500)
+      setTimeout(() => setFlashing(true), 600)
+      setTimeout(() => router.push(`/p/${post.slug}?new=1`), 1600)
+    } else {
+      setSaving(false)
     }
-    setSaving(false)
   }
 
   const deletePost = async () => {
@@ -198,13 +247,32 @@ function WriteForm() {
         <div>
           <div className="text-[11px] text-stone-400 font-sans mb-3">卡片颜色</div>
           <ColorPicker value={cardColor} onChange={setCardColor} />
-          <div className="mt-3 flex items-center gap-2">
-            <span className="text-[11px] text-stone-400 font-sans">预览：</span>
-            <div
-              className="px-3 py-1.5 rounded font-mono text-[12px]"
-              style={{ background: cardColor }}
-            >
-              {title || '文章标题'}
+          <div className="mt-3 flex items-start gap-2">
+            <span className="text-[11px] text-stone-400 font-sans mt-1.5">预览：</span>
+            <div className="flex flex-col gap-2">
+              <div
+                className="px-3 py-1.5 rounded font-mono text-[12px]"
+                style={{ background: cardColor, color: cardTextColor }}
+              >
+                {title || '文章标题'}
+              </div>
+              <div className="flex gap-1.5">
+                {getTextSchemes(cardColor).map((tc, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setCardTextColor(tc)}
+                    title={['同色系', '高对比', '纯白黑'][i]}
+                    className={`flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded border transition-all ${
+                      cardTextColor === tc
+                        ? 'border-stone-500 bg-stone-100 text-stone-700'
+                        : 'border-stone-200 text-stone-400 hover:border-stone-400'
+                    }`}
+                  >
+                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: tc, border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0 }} />
+                    {['同色系', '高对比', '纯白黑'][i]}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -224,10 +292,8 @@ function WriteForm() {
       {flashing && (
         <div
           className="publish-flash"
-          style={{
-            position: 'fixed', inset: 0, zIndex: 999,
-            background: cardColor, pointerEvents: 'none',
-          }}
+          style={{ position: 'fixed', inset: 0, zIndex: 50, background: cardColor, pointerEvents: 'none' }}
+          onAnimationEnd={() => setFlashing(false)}
         />
       )}
     </main>

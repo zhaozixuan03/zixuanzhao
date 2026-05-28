@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 
-  const { title, content, visibility, card_color, tags } = await req.json()
+  const { title, content, visibility, card_color, card_text_color, tags } = await req.json()
   const id = uuidv4()
   const content_text = extractPlainText(content || '')
   const image_urls = extractImages(content || '')
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
     visibility: visibility as Visibility,
     slug,
     card_color: card_color || null,
+    card_text_color: card_text_color || '#1a1a18',
     tags: tags || [],
   }).select().single()
 
@@ -58,7 +59,7 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 
-  const { id, title, content, visibility, card_color, tags } = await req.json()
+  const { id, title, content, visibility, card_color, card_text_color, tags } = await req.json()
   const content_text = extractPlainText(content || '')
   const image_urls = extractImages(content || '')
 
@@ -69,6 +70,7 @@ export async function PATCH(req: NextRequest) {
     image_urls,
     visibility: visibility as Visibility,
     card_color: card_color || null,
+    card_text_color: card_text_color || '#1a1a18',
     tags: tags || [],
     updated_at: new Date().toISOString(),
   }).eq('id', id).select().single()

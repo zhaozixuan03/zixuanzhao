@@ -89,20 +89,20 @@ body {
 
 /* Publish animations */
 @keyframes flash-in-out {
-  0% { opacity: 0 }
-  25% { opacity: 0.75 }
+  0% { opacity: 0; animation-timing-function: ease-in; }
+  30% { opacity: 0.9; animation-timing-function: linear; }
+  50% { opacity: 0.9; animation-timing-function: ease-out; }
   100% { opacity: 0 }
 }
-.publish-flash { animation: flash-in-out 0.6s ease forwards; }
+.publish-flash { animation: flash-in-out 1s forwards; }
 
-@keyframes sprout-fade {
-  0% { opacity: 0; transform: scale(0.5) }
-  20% { opacity: 1; transform: scale(1.2) }
-  40% { opacity: 1; transform: scale(1) }
-  75% { opacity: 1; transform: scale(1) }
-  100% { opacity: 0; transform: scale(0.8) }
+@keyframes sprout-pop {
+  0% { opacity: 0; transform: translate(-50%, calc(-50% + 20px)); }
+  25% { opacity: 1; transform: translate(-50%, -50%); }
+  75% { opacity: 1; transform: translate(-50%, -50%); }
+  100% { opacity: 0; transform: translate(-50%, calc(-50% - 20px)); }
 }
-.sprout-anim { animation: sprout-fade 2.2s ease forwards; }
+.sprout-pop { animation: sprout-pop 2.2s ease forwards; }
 
 /* Responsive adjustments */
 @media (max-width: 640px) {

@@ -4,6 +4,8 @@ import { countWords } from '@/lib/utils'
 import ContributionGrid from '@/components/ContributionGrid'
 import PostCard from '@/components/PostCard'
 import MasonryGallery from '@/components/MasonryGallery'
+import Nav from '@/components/Nav'
+import FilterBar from '@/components/FilterBar'
 
 export const revalidate = 0
 
@@ -34,32 +36,12 @@ export default async function Home({
     ? posts.filter((p: any) => (p.tags || []).includes(currentTag))
     : posts
 
-  const capsule = (active: boolean) =>
-    `text-[11px] font-mono px-3 py-1 rounded-full border transition-colors ${
-      active
-        ? 'bg-stone-800 text-white border-stone-800'
-        : 'border-stone-300 text-stone-500 hover:border-stone-600 hover:text-stone-700'
-    }`
-
   return (
     <div className="pb-20">
       {/* Nav */}
-      <nav className="max-w-[860px] mx-auto px-6 md:px-16 flex items-center justify-between py-6 mb-2">
-        <a href="/" className="font-mono text-[13px] text-stone-700 hover:text-stone-900 transition-colors">
-          zixuanzhao
-        </a>
-        <div className="flex items-center gap-1.5 flex-wrap justify-end">
-          <a href="/" className={capsule(!currentTag)}>全部</a>
-          {allTags.map(tag => (
-            <a key={tag} href={`/?tag=${encodeURIComponent(tag)}`} className={capsule(currentTag === tag)}>
-              {tag}
-            </a>
-          ))}
-          {authed && (
-            <a href="/write" className={capsule(false)}>写 +</a>
-          )}
-        </div>
-      </nav>
+      <div className="max-w-[860px] mx-auto px-6 md:px-16">
+        <Nav isAuthed={authed} />
+      </div>
 
       {/* Hero */}
       <div className="max-w-[860px] mx-auto px-6 md:px-16 mb-12">
@@ -70,8 +52,13 @@ export default async function Home({
         <p className="text-[14px] text-stone-400 mt-5 font-sans">这里是我放字的地方。方方面面，随时随地。</p>
       </div>
 
+      {/* Filter Bar */}
+      <div className="max-w-[860px] mx-auto px-6 md:px-16 mb-8">
+        <FilterBar tags={allTags} active={currentTag} />
+      </div>
+
       {/* Contribution grid */}
-      <div className="max-w-[860px] mx-auto px-6 md:px-16 mt-10">
+      <div className="max-w-[860px] mx-auto px-6 md:px-16 mt-2">
         <ContributionGrid dates={postDates} totalPosts={posts.length} totalWords={totalWords} />
       </div>
 

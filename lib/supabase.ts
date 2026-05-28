@@ -16,6 +16,7 @@ export interface Post {
   slug: string
   image_urls: string[]   // extracted image URLs from content
   card_color: string | null
+  card_text_color: string | null
   tags: string[] | null
   created_at: string
   updated_at: string
