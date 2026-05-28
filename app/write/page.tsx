@@ -5,50 +5,42 @@ import dynamic from 'next/dynamic'
 import { Visibility } from '@/lib/supabase'
 import { Eye, Lock, ChevronDown, Trash2 } from 'lucide-react'
 
-function hexToHsv(hex: string): [number, number, number] {
-  const r = parseInt(hex.slice(1, 3), 16) / 255
-  const g = parseInt(hex.slice(3, 5), 16) / 255
-  const b = parseInt(hex.slice(5, 7), 16) / 255
-  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min
-  const s = max === 0 ? 0 : d / max
-  const v = max
-  let h = 0
-  if (d !== 0) {
-    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) * 60
-    else if (max === g) h = ((b - r) / d + 2) * 60
-    else h = ((r - g) / d + 4) * 60
-  }
-  return [h, s, v]
-}
-
 function hslToHex(h: number, s: number, l: number): string {
+  const a = s * Math.min(l, 1 - l)
   const f = (n: number) => {
-    const k = (n + h / 30) % 12
-    const a = s * Math.min(l, 1 - l)
-    return l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+    const k = (n + h * 12) % 12
+    const color = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+    return Math.round(255 * color).toString(16).padStart(2, '0')
   }
-  return '#' + [f(0), f(8), f(4)].map(x =>
-    Math.round(x * 255).toString(16).padStart(2, '0')
-  ).join('')
+  return '#' + f(0) + f(8) + f(4)
 }
 
-function getLuminance(hex: string): number {
-  const r = parseInt(hex.slice(1, 3), 16) / 255
-  const g = parseInt(hex.slice(3, 5), 16) / 255
-  const b = parseInt(hex.slice(5, 7), 16) / 255
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b
-}
+function getTextColor(hex: string, mode: 'harmony' | 'contrast' | 'bw'): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
 
-function getTextSchemes(bg: string): [string, string, string] {
-  const [h, s, v] = hexToHsv(bg)
-  const light = getLuminance(bg) > 0.55
-  return [
-    light
-      ? hslToHex(h, Math.min(1, s * 1.2), v * 0.28)
-      : hslToHex(h, s * 0.25, Math.min(0.95, v * 1.9 + 0.15)),
-    light ? '#1a1a18' : '#f8f8f5',
-    light ? '#1a1a18' : '#ffffff',
-  ]
+  if (mode === 'bw') return lum > 0.55 ? '#1a1a18' : '#ffffff'
+  if (mode === 'contrast') return lum > 0.55 ? '#1a1a18' : '#f8f8f5'
+
+  const rn = r / 255, gn = g / 255, bn = b / 255
+  const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn)
+  const l = (max + min) / 2
+  const d = max - min
+  let h = 0, s = 0
+  if (d !== 0) {
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
+    if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6
+    else if (max === gn) h = ((bn - rn) / d + 2) / 6
+    else h = ((rn - gn) / d + 4) / 6
+  }
+
+  if (lum > 0.55) {
+    return hslToHex(h, Math.min(1, s * 1.5 + 0.3), Math.max(0.08, l * 0.25))
+  } else {
+    return hslToHex(h, Math.max(0, s * 0.4), Math.min(0.95, l * 1.8 + 0.3))
+  }
 }
 
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false })
@@ -72,8 +64,9 @@ function WriteForm() {
   const [content, setContent] = useState('')
   const [visibility, setVisibility] = useState<Visibility>('private')
   const [cardColor, setCardColor] = useState('#A8DADC')
-  const [cardTextColor, setCardTextColor] = useState('#1a1a18')
+  const [textMode, setTextMode] = useState<'harmony' | 'contrast' | 'bw'>('contrast')
   const [tags, setTags] = useState<string[]>([])
+  const cardTextColor = getTextColor(cardColor, textMode)
   const [showVisMenu, setShowVisMenu] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -94,7 +87,6 @@ function WriteForm() {
               setContent(post.content || '')
               setVisibility(post.visibility)
               if (post.card_color) setCardColor(post.card_color)
-              if (post.card_text_color) setCardTextColor(post.card_text_color)
               if (post.tags) setTags(post.tags)
             }
           })
@@ -130,7 +122,7 @@ function WriteForm() {
       const post = await res.json()
       setTimeout(() => { setSaving(false); setSaved(true) }, 500)
       setTimeout(() => setFlashing(true), 600)
-      setTimeout(() => router.push(`/p/${post.slug}?new=1`), 1600)
+      setTimeout(() => router.push(`/p/${post.slug}?new=1`), 2200)
     } else {
       setSaving(false)
     }
@@ -257,21 +249,25 @@ function WriteForm() {
                 {title || '文章标题'}
               </div>
               <div className="flex gap-1.5">
-                {getTextSchemes(cardColor).map((tc, i) => (
-                  <button
-                    key={i}
-                    onClick={() => setCardTextColor(tc)}
-                    title={['同色系', '高对比', '纯白黑'][i]}
-                    className={`flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded border transition-all ${
-                      cardTextColor === tc
-                        ? 'border-stone-500 bg-stone-100 text-stone-700'
-                        : 'border-stone-200 text-stone-400 hover:border-stone-400'
-                    }`}
-                  >
-                    <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: tc, border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0 }} />
-                    {['同色系', '高对比', '纯白黑'][i]}
-                  </button>
-                ))}
+                {(['harmony', 'contrast', 'bw'] as const).map(m => {
+                  const tc = getTextColor(cardColor, m)
+                  const label = m === 'harmony' ? '同色系' : m === 'contrast' ? '高对比' : '纯白黑'
+                  return (
+                    <button
+                      key={m}
+                      onClick={() => setTextMode(m)}
+                      title={label}
+                      className={`flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded border transition-all ${
+                        textMode === m
+                          ? 'border-stone-500 bg-stone-100 text-stone-700'
+                          : 'border-stone-200 text-stone-400 hover:border-stone-400'
+                      }`}
+                    >
+                      <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: tc, border: '1px solid rgba(0,0,0,0.15)', flexShrink: 0 }} />
+                      {label}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </div>

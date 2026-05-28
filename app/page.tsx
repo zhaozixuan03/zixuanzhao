@@ -52,14 +52,14 @@ export default async function Home({
         <p className="text-[14px] text-stone-400 mt-5 font-sans">这里是我放字的地方。方方面面，随时随地。</p>
       </div>
 
-      {/* Filter Bar */}
-      <div className="max-w-[860px] mx-auto px-6 md:px-16 mb-8">
-        <FilterBar tags={allTags} active={currentTag} />
-      </div>
-
       {/* Contribution grid */}
       <div className="max-w-[860px] mx-auto px-6 md:px-16 mt-2">
         <ContributionGrid dates={postDates} totalPosts={posts.length} totalWords={totalWords} />
+      </div>
+
+      {/* Filter Bar */}
+      <div className="max-w-[860px] mx-auto px-6 md:px-16 mt-6 mb-2">
+        <FilterBar tags={allTags} active={currentTag} />
       </div>
 
       {/* Write entry */}

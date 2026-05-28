@@ -89,12 +89,12 @@ body {
 
 /* Publish animations */
 @keyframes flash-in-out {
-  0% { opacity: 0; animation-timing-function: ease-in; }
-  30% { opacity: 0.9; animation-timing-function: linear; }
-  50% { opacity: 0.9; animation-timing-function: ease-out; }
+  0%   { opacity: 0;    animation-timing-function: ease-in; }
+  27%  { opacity: 0.92; animation-timing-function: linear; }
+  53%  { opacity: 0.92; animation-timing-function: ease-out; }
   100% { opacity: 0 }
 }
-.publish-flash { animation: flash-in-out 1s forwards; }
+.publish-flash { animation: flash-in-out 1.5s forwards; }
 
 @keyframes sprout-pop {
   0% { opacity: 0; transform: translate(-50%, calc(-50% + 20px)); }
