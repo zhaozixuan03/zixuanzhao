@@ -85,6 +85,52 @@ export default function ColorPicker({ value, onChange }: Props) {
     return () => { window.removeEventListener('mousemove', move); window.removeEventListener('mouseup', up) }
   }, [updateSv, updateHue])
 
+  useEffect(() => {
+    const svEl = svRef.current
+    const hueEl = hueRef.current
+    if (!svEl || !hueEl) return
+
+    const svTouchStart = (e: TouchEvent) => {
+      e.preventDefault()
+      svDragging.current = true
+      updateSv(e.touches[0].clientX, e.touches[0].clientY)
+    }
+    const svTouchMove = (e: TouchEvent) => {
+      if (!svDragging.current) return
+      e.preventDefault()
+      updateSv(e.touches[0].clientX, e.touches[0].clientY)
+    }
+    const svTouchEnd = () => { svDragging.current = false }
+
+    const hueTouchStart = (e: TouchEvent) => {
+      e.preventDefault()
+      hueDragging.current = true
+      updateHue(e.touches[0].clientX)
+    }
+    const hueTouchMove = (e: TouchEvent) => {
+      if (!hueDragging.current) return
+      e.preventDefault()
+      updateHue(e.touches[0].clientX)
+    }
+    const hueTouchEnd = () => { hueDragging.current = false }
+
+    svEl.addEventListener('touchstart', svTouchStart, { passive: false })
+    svEl.addEventListener('touchmove', svTouchMove, { passive: false })
+    svEl.addEventListener('touchend', svTouchEnd)
+    hueEl.addEventListener('touchstart', hueTouchStart, { passive: false })
+    hueEl.addEventListener('touchmove', hueTouchMove, { passive: false })
+    hueEl.addEventListener('touchend', hueTouchEnd)
+
+    return () => {
+      svEl.removeEventListener('touchstart', svTouchStart)
+      svEl.removeEventListener('touchmove', svTouchMove)
+      svEl.removeEventListener('touchend', svTouchEnd)
+      hueEl.removeEventListener('touchstart', hueTouchStart)
+      hueEl.removeEventListener('touchmove', hueTouchMove)
+      hueEl.removeEventListener('touchend', hueTouchEnd)
+    }
+  }, [updateSv, updateHue])
+
   const hex = hsvToHex(hue, sat, bri)
 
   return (

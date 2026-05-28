@@ -4,13 +4,19 @@ import { supabase } from '@/lib/supabase'
 import { isAuthenticated } from '@/lib/auth'
 import { formatDateFull } from '@/lib/utils'
 import Nav from '@/components/Nav'
+import PublishCelebration from '@/components/PublishCelebration'
 
 export const revalidate = 0
 
-interface Props { params: Promise<{ slug: string }> }
+interface Props {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ new?: string }>
+}
 
-export default async function PostPage({ params }: Props) {
+export default async function PostPage({ params, searchParams }: Props) {
   const { slug } = await params
+  const sp = await searchParams
+  const isNew = sp.new === '1'
   const authed = await isAuthenticated()
 
   let { data: post } = await supabase
@@ -37,9 +43,7 @@ export default async function PostPage({ params }: Props) {
 
   return (
     <>
-      {post.card_color && (
-        <div style={{ background: post.card_color, height: 8 }} />
-      )}
+      <PublishCelebration cardColor={post.card_color} isNew={isNew} />
     <main className="max-w-[860px] mx-auto px-6 md:px-16 pb-20">
       <Nav isAuthed={authed} />
 

@@ -11,7 +11,7 @@ async function getData(authed: boolean) {
   const visFilter = authed ? ['public', 'private'] : ['public']
   const [postsRes, photosRes] = await Promise.all([
     supabase.from('posts').select('*').in('visibility', visFilter).order('created_at', { ascending: false }),
-    supabase.from('photos').select('*').order('created_at', { ascending: false }),
+    supabase.from('photos').select('*').is('post_id', null).order('created_at', { ascending: false }),
   ])
   return { posts: postsRes.data || [], photos: photosRes.data || [] }
 }
@@ -70,19 +70,9 @@ export default async function Home({
         <p className="text-[14px] text-stone-400 mt-5 font-sans">这里是我放字的地方。方方面面，随时随地。</p>
       </div>
 
-      {/* Card grid — edge-to-edge within container */}
-      <div className="max-w-[860px] mx-auto px-6 md:px-16">
-        {filteredPosts.length === 0 ? (
-          <div className="py-16 text-center text-stone-400 text-sm font-mono">
-            {currentTag ? `没有 #${currentTag} 的文章` : '还没有文章，去写第一篇吧。'}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[2px]">
-            {filteredPosts.map((post: any) => (
-              <PostCard key={post.id} post={post} isOwner={authed} />
-            ))}
-          </div>
-        )}
+      {/* Contribution grid */}
+      <div className="max-w-[860px] mx-auto px-6 md:px-16 mt-10">
+        <ContributionGrid dates={postDates} totalPosts={posts.length} totalWords={totalWords} />
       </div>
 
       {/* Write entry */}
@@ -101,9 +91,19 @@ export default async function Home({
         </div>
       )}
 
-      {/* Contribution grid */}
+      {/* Card grid — edge-to-edge within container */}
       <div className="max-w-[860px] mx-auto px-6 md:px-16 mt-10">
-        <ContributionGrid dates={postDates} totalPosts={posts.length} totalWords={totalWords} />
+        {filteredPosts.length === 0 ? (
+          <div className="py-16 text-center text-stone-400 text-sm font-mono">
+            {currentTag ? `没有 #${currentTag} 的文章` : '还没有文章，去写第一篇吧。'}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-[2px]">
+            {filteredPosts.map((post: any) => (
+              <PostCard key={post.id} post={post} isOwner={authed} />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="max-w-[860px] mx-auto px-6 md:px-16">

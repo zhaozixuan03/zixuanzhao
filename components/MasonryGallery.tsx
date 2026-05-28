@@ -56,13 +56,19 @@ export default function MasonryGallery({ photos, isOwner }: Props) {
     const compressed = await compressImage(file)
     const fd = new FormData()
     fd.append('file', compressed)
-    await fetch('/api/upload', { method: 'POST', body: fd })
+    const uploadRes = await fetch('/api/upload', { method: 'POST', body: fd })
+    const { url } = await uploadRes.json()
+    await fetch('/api/photos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    })
     window.location.reload()
   }
 
   const handleDelete = async (e: React.MouseEvent, photo: Photo) => {
     e.stopPropagation()
-    await fetch('/api/upload', {
+    await fetch('/api/photos', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ photo_id: photo.id }),

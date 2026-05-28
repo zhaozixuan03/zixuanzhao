@@ -44,6 +44,11 @@ export async function POST(req: NextRequest) {
   }).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  if (image_urls.length > 0) {
+    await supabase.from('photos').insert(image_urls.map((url: string) => ({ url, post_id: id })))
+  }
+
   return NextResponse.json(data)
 }
 
@@ -69,6 +74,12 @@ export async function PATCH(req: NextRequest) {
   }).eq('id', id).select().single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  await supabase.from('photos').delete().eq('post_id', id)
+  if (image_urls.length > 0) {
+    await supabase.from('photos').insert(image_urls.map((url: string) => ({ url, post_id: id })))
+  }
+
   return NextResponse.json(data)
 }
 
@@ -79,6 +90,7 @@ export async function DELETE(req: NextRequest) {
   }
 
   const { id } = await req.json()
+  await supabase.from('photos').delete().eq('post_id', id)
   const { error } = await supabase.from('posts').delete().eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })

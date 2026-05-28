@@ -30,6 +30,7 @@ function WriteForm() {
   const [showVisMenu, setShowVisMenu] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [flashing, setFlashing] = useState(false)
 
   useEffect(() => {
     fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'check' }) })
@@ -79,8 +80,9 @@ function WriteForm() {
 
     if (res.ok) {
       const post = await res.json()
-      setSaved(true)
-      setTimeout(() => router.push(`/p/${post.slug}`), 800)
+      setFlashing(true)
+      setTimeout(() => { setFlashing(false); setSaved(true) }, 600)
+      setTimeout(() => router.push(`/p/${post.slug}?new=1`), 1200)
     }
     setSaving(false)
   }
@@ -218,6 +220,16 @@ function WriteForm() {
       <p className="mt-4 text-[11px] text-stone-400 font-sans text-right">
         写完点右上角「发布」，之后随时可以改
       </p>
+
+      {flashing && (
+        <div
+          className="publish-flash"
+          style={{
+            position: 'fixed', inset: 0, zIndex: 999,
+            background: cardColor, pointerEvents: 'none',
+          }}
+        />
+      )}
     </main>
   )
 }

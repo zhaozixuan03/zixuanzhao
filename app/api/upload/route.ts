@@ -27,30 +27,5 @@ export async function POST(req: NextRequest) {
 
   const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(filename)
 
-  // Also record in photos table (standalone tracking)
-  await supabase.from('photos').insert({ url: publicUrl })
-
   return NextResponse.json({ url: publicUrl })
-}
-
-export async function DELETE(req: NextRequest) {
-  if (!isAuthenticatedFromRequest(req)) {
-    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
-  }
-
-  const { photo_id } = await req.json()
-
-  const { data: photo } = await supabase
-    .from('photos')
-    .select('url')
-    .eq('id', photo_id)
-    .single()
-
-  if (!photo) return NextResponse.json({ error: 'not found' }, { status: 404 })
-
-  const filename = (photo.url as string).split('/').pop()!
-  await supabase.storage.from(BUCKET).remove([filename])
-  await supabase.from('photos').delete().eq('id', photo_id)
-
-  return NextResponse.json({ ok: true })
 }
