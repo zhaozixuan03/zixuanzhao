@@ -119,20 +119,14 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
     const isToday = cell.key === todayKey && isCurrentMonth
     if (isToday) {
       const wrote = (counts[todayKey] || 0) > 0
-      const todayBase: React.CSSProperties = {
-        boxShadow: '0 0 0 3px rgba(99,153,34,0.2)',
-        position: 'relative',
-        zIndex: 1,
-        fontWeight: 500,
-      }
       if (wrote) {
-        return { ...todayBase, background: '#3B6D11', color: '#EAF3DE' }
+        return { position: 'relative', zIndex: 1, background: '#3B6D11', color: '#EAF3DE', fontWeight: 500 }
       }
       return {
-        ...todayBase,
-        background: 'transparent',
-        border: '2.5px dashed #97C459',
-        color: '#3B6D11',
+        position: 'relative', zIndex: 1,
+        background: '#f5f4f0',
+        border: '2px solid #97C459',
+        color: '#3B6D11', fontWeight: 600,
       }
     }
     if (cell.isFuture) return { background: '#f0ede6', color: '#ccc' }
@@ -197,22 +191,38 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
       <div className="flex flex-col gap-[2px]">
         {weeks.map((row, wi) => (
           <div key={wi} className="grid grid-cols-7 gap-[2px]">
-            {row.map((cell, di) => (
-              <div
-                key={di}
-                title={tooltipText(cell)}
-                className="rounded-[3px] flex items-center justify-center transition-transform hover:scale-[1.06] cursor-default"
-                style={{
-                  aspectRatio: '1',
-                  fontSize: 11,
-                  fontFamily: 'monospace',
-                  userSelect: 'none',
-                  ...cellStyle(cell),
-                }}
-              >
-                {cell.inMonth ? cell.dayOfMonth : ''}
-              </div>
-            ))}
+            {row.map((cell, di) => {
+              const isToday = cell.key === todayKey && isCurrentMonth
+              const dotColor = (counts[todayKey] || 0) > 0 ? 'white' : '#97C459'
+              return (
+                <div
+                  key={di}
+                  title={tooltipText(cell)}
+                  className={`rounded-[3px] flex items-center justify-center ${
+                    cell.inMonth
+                      ? 'hover:scale-[1.05] hover:shadow-[0_2px_8px_rgba(0,0,0,0.1)] cursor-pointer'
+                      : 'cursor-default'
+                  }`}
+                  style={{
+                    aspectRatio: '1',
+                    fontSize: 11,
+                    fontFamily: 'monospace',
+                    userSelect: 'none',
+                    transition: 'transform 0.15s, box-shadow 0.15s',
+                    ...cellStyle(cell),
+                  }}
+                >
+                  {isToday && (
+                    <div style={{
+                      position: 'absolute', top: 8, right: 8,
+                      width: 7, height: 7, borderRadius: '50%',
+                      background: dotColor, pointerEvents: 'none',
+                    }} />
+                  )}
+                  {cell.inMonth ? cell.dayOfMonth : ''}
+                </div>
+              )
+            })}
           </div>
         ))}
       </div>
