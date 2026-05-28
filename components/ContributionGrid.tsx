@@ -8,22 +8,27 @@ interface Props {
   totalWords: number
 }
 
-const DAYS = 7
-const CELL = 11
-const GAP = 3
-// 0=Mon, 1=Tue, 2=Wed, 3=Thu, 4=Fri, 5=Sat, 6=Sun
-const DAY_LABELS: Record<number, string> = { 0: 'Mon', 2: 'Wed', 4: 'Fri' }
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
+const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
 function localKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+interface Cell {
+  date: Date
+  key: string
+  inMonth: boolean
+  isFuture: boolean
+  dayOfMonth: number
+}
+
 export default function ContributionGrid({ dates, totalPosts, totalWords }: Props) {
   const now = new Date()
+  now.setHours(0, 0, 0, 0)
   const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(now.getMonth()) // 0-indexed
+  const [month, setMonth] = useState(now.getMonth())
 
-  // Build per-day counts from all dates
   const counts = useMemo(() => {
     const map: Record<string, number> = {}
     dates.forEach(d => {
@@ -33,52 +38,73 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
     return map
   }, [dates])
 
-  // Years that have data + current year, descending
-  const availableYears = useMemo(() => {
-    const ys = new Set<number>([new Date().getFullYear()])
-    dates.forEach(d => ys.add(parseInt(d.slice(0, 4))))
-    return Array.from(ys).sort((a, b) => b - a)
+  const earliestYear = useMemo(() => {
+    if (dates.length === 0) return now.getFullYear()
+    return Math.min(...dates.map(d => parseInt(d.slice(0, 4))))
   }, [dates])
 
-  const { cells, numWeeks, monthDays, monthPosts, todayKey } = useMemo(() => {
+  const earliestMonth = useMemo(() => {
+    const earliest = dates.filter(d => parseInt(d.slice(0, 4)) === earliestYear)
+    if (earliest.length === 0) return 0
+    return Math.min(...earliest.map(d => parseInt(d.slice(5, 7)) - 1))
+  }, [dates, earliestYear])
+
+  const { weeks, monthPosts, todayKey, todayN } = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     const tk = localKey(today)
 
     const firstDay = new Date(year, month, 1)
     const daysInMonth = new Date(year, month + 1, 0).getDate()
-    // Day offset so grid rows start on Monday (0=Mon … 6=Sun)
-    const firstDayOfWeek = (firstDay.getDay() + 6) % 7
-    const nw = Math.ceil((firstDayOfWeek + daysInMonth) / 7)
+    const firstDayOfWeek = (firstDay.getDay() + 6) % 7 // 0=Mon
+    const numWeeks = Math.ceil((firstDayOfWeek + daysInMonth) / 7)
 
     const gridStart = new Date(firstDay)
     gridStart.setDate(gridStart.getDate() - firstDayOfWeek)
 
-    const cs: { date: Date; key: string; inMonth: boolean; isFuture: boolean }[] = []
-    for (let col = 0; col < nw; col++) {
-      for (let row = 0; row < DAYS; row++) {
-        const d = new Date(gridStart)
-        d.setDate(d.getDate() + col * DAYS + row)
-        cs.push({
-          date: d,
-          key: localKey(d),
-          inMonth: d.getMonth() === month && d.getFullYear() === year,
-          isFuture: d > today,
+    // rows = weeks, cols = Mon..Sun
+    const ws: Cell[][] = []
+    for (let w = 0; w < numWeeks; w++) {
+      const row: Cell[] = []
+      for (let d = 0; d < 7; d++) {
+        const date = new Date(gridStart)
+        date.setDate(date.getDate() + w * 7 + d)
+        row.push({
+          date,
+          key: localKey(date),
+          inMonth: date.getMonth() === month && date.getFullYear() === year,
+          isFuture: date > today,
+          dayOfMonth: date.getDate(),
         })
       }
+      ws.push(row)
     }
 
     const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`
-    const mDays = Object.entries(counts).filter(([k, v]) => k.startsWith(monthPrefix) && v > 0).length
     const mPosts = dates.filter(d => d.startsWith(monthPrefix)).length
 
-    return { cells: cs, numWeeks: nw, monthDays: mDays, monthPosts: mPosts, todayKey: tk }
+    const monthPosts = mPosts
+    // count of days this month with at least 1 post
+    const monthDaysWithPost = Object.entries(counts).filter(([k]) => k.startsWith(monthPrefix) && (counts[k] || 0) > 0).length
+
+    // ordinal: how many-th day in month did today write
+    const todayOrdinal = Object.keys(counts)
+      .filter(k => k.startsWith(monthPrefix) && (counts[k] || 0) > 0)
+      .sort()
+      .indexOf(tk) + 1
+
+    return { weeks: ws, monthPosts, todayKey: tk, todayN: todayOrdinal > 0 ? todayOrdinal : monthDaysWithPost }
   }, [year, month, counts, dates])
 
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth()
+  const isEarliestMonth = year === earliestYear && month === earliestMonth
   const todayWrote = isCurrentMonth && (counts[todayKey] || 0) > 0
 
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, '0')}-`
+  const monthDaysWithPost = Object.keys(counts).filter(k => k.startsWith(monthPrefix) && (counts[k] || 0) > 0).length
+
   const goPrev = () => {
+    if (isEarliestMonth) return
     if (month === 0) { setYear(y => y - 1); setMonth(11) }
     else setMonth(m => m - 1)
   }
@@ -87,131 +113,101 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
     if (month === 11) { setYear(y => y + 1); setMonth(0) }
     else setMonth(m => m + 1)
   }
-  const changeYear = (newYear: number) => {
-    setYear(newYear)
-    if (newYear === now.getFullYear() && month > now.getMonth()) {
-      setMonth(now.getMonth())
-    }
-  }
 
-  function cellStyle(cell: typeof cells[0]): React.CSSProperties {
-    if (!cell.inMonth) return { width: CELL, height: CELL }
+  function cellStyle(cell: Cell): React.CSSProperties {
+    if (!cell.inMonth) return { background: 'transparent' }
     const isToday = cell.key === todayKey && isCurrentMonth
     if (isToday) {
       const wrote = (counts[todayKey] || 0) > 0
+      if (wrote) {
+        return { background: '#3B6D11', color: '#fff' }
+      }
       return {
-        width: CELL, height: CELL,
-        background: wrote ? '#3B6D11' : 'transparent',
-        outline: wrote ? undefined : '1.5px dashed #97C459',
-        transform: 'scale(1.3)',
-        position: 'relative' as const,
-        zIndex: 1,
+        background: 'transparent',
+        border: '2px dashed #97C459',
+        color: '#97C459',
       }
     }
-    if (cell.isFuture) return { width: CELL, height: CELL, background: '#f0ede6' }
+    if (cell.isFuture) return { background: '#f0ede6', color: '#ccc' }
     const c = counts[cell.key] || 0
-    const bg = c === 0 ? '#e8e6e0' : c === 1 ? '#C0DD97' : c <= 3 ? '#97C459' : '#3B6D11'
-    return { width: CELL, height: CELL, background: bg }
+    if (c === 0) return { background: '#e8e6e0', color: '#999' }
+    if (c === 1) return { background: '#C0DD97', color: '#5a7a2a' }
+    if (c <= 3) return { background: '#97C459', color: '#3B6D11' }
+    return { background: '#3B6D11', color: '#fff' }
   }
 
-  const wordsFmt = totalWords >= 10000
-    ? `${(totalWords / 10000).toFixed(1)}w`
-    : totalWords.toLocaleString()
+  function tooltipText(cell: Cell): string {
+    if (!cell.inMonth) return ''
+    const isToday = cell.key === todayKey && isCurrentMonth
+    const c = counts[cell.key] || 0
+    if (isToday && c === 0) return '今天还没写'
+    if (c === 0) return `${cell.date.getMonth() + 1}/${cell.date.getDate()}`
+    return `${cell.date.getMonth() + 1}/${cell.date.getDate()} · ${c} 篇`
+  }
 
   return (
-    <div className="py-10 border-b border-stone-200">
-      {/* Stats header */}
-      <div className="flex items-end justify-between mb-4">
-        <div>
-          <div className="text-[40px] font-medium text-[#3B6D11] leading-none font-sans">{monthDays}</div>
-          <div className="text-[12px] text-[#639922] mt-1 font-sans">{month + 1}月种下了 {monthDays} 次</div>
-        </div>
-        <div className="flex gap-6 text-right">
-          <div>
-            <div className="text-[16px] font-medium text-stone-700 font-sans">{monthPosts}</div>
-            <div className="text-[11px] text-stone-400 font-sans">本月篇数</div>
-          </div>
-          <div>
-            <div className="text-[16px] font-medium text-stone-700 font-sans">{wordsFmt}</div>
-            <div className="text-[11px] text-stone-400 font-sans">总字数</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Month navigation */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
+    <div className="py-8 border-b border-stone-200">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-baseline gap-2">
           <button
             onClick={goPrev}
-            className="text-stone-400 hover:text-stone-700 transition-colors font-sans text-[16px] leading-none"
+            disabled={isEarliestMonth}
+            className="text-stone-300 hover:text-stone-600 transition-colors text-[16px] leading-none disabled:opacity-20 disabled:cursor-not-allowed"
           >←</button>
-          <span className="text-[13px] text-stone-600 font-sans min-w-[72px] text-center">
-            {year}年{month + 1}月
+          <span style={{ fontFamily: 'Georgia, serif', fontSize: 24, color: '#333', fontWeight: 400 }}>
+            {MONTH_NAMES[month]}
+          </span>
+          <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#bbb' }}>
+            {year}
           </span>
           <button
             onClick={goNext}
             disabled={isCurrentMonth}
-            className="text-stone-400 hover:text-stone-700 transition-colors font-sans text-[16px] leading-none disabled:opacity-25 disabled:cursor-not-allowed"
+            className="text-stone-300 hover:text-stone-600 transition-colors text-[16px] leading-none disabled:opacity-20 disabled:cursor-not-allowed"
           >→</button>
         </div>
-        <select
-          value={year}
-          onChange={e => changeYear(Number(e.target.value))}
-          className="text-[11px] text-stone-400 font-sans bg-transparent border-none outline-none cursor-pointer"
-        >
-          {availableYears.map(y => <option key={y} value={y}>{y}年</option>)}
-        </select>
-      </div>
-
-      {/* Grid */}
-      <div className="overflow-x-auto">
-        <div style={{ display: 'inline-block' }}>
-          <div style={{ display: 'flex', gap: 4 }}>
-            {/* Weekday labels */}
-            <div style={{ width: 28, display: 'flex', flexDirection: 'column', gap: GAP }}>
-              {Array.from({ length: DAYS }).map((_, d) => (
-                <div
-                  key={d}
-                  style={{
-                    height: CELL,
-                    lineHeight: `${CELL}px`,
-                    fontSize: 9,
-                    color: '#aaa',
-                    textAlign: 'right',
-                    fontFamily: '-apple-system, sans-serif',
-                    paddingRight: 2,
-                  }}
-                >
-                  {DAY_LABELS[d] ?? ''}
-                </div>
-              ))}
-            </div>
-
-            {/* Week columns */}
-            <div style={{ display: 'flex', gap: GAP }}>
-              {Array.from({ length: numWeeks }).map((_, col) => (
-                <div key={col} style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
-                  {Array.from({ length: DAYS }).map((_, row) => {
-                    const cell = cells[col * DAYS + row]
-                    if (!cell) return <div key={row} style={{ width: CELL, height: CELL }} />
-                    return (
-                      <div
-                        key={row}
-                        className="rounded-[2px] grid-cell"
-                        style={cellStyle(cell)}
-                        title={
-                          cell.inMonth
-                            ? `${cell.date.toLocaleDateString('zh')}${counts[cell.key] ? ` · 写了 ${counts[cell.key]} 篇` : ''}`
-                            : ''
-                        }
-                      />
-                    )
-                  })}
-                </div>
-              ))}
-            </div>
+        <div className="text-right">
+          <div style={{ fontFamily: 'Georgia, serif', fontSize: 32, color: '#3B6D11', lineHeight: 1 }}>
+            {monthPosts}
+          </div>
+          <div style={{ fontFamily: 'monospace', fontSize: 11, color: '#aaa', marginTop: 2 }}>
+            这个月种下了 {monthPosts} 次
           </div>
         </div>
+      </div>
+
+      {/* Day headers */}
+      <div className="grid grid-cols-7 mb-1">
+        {DAY_LABELS.map(d => (
+          <div key={d} className="text-center" style={{ fontFamily: 'monospace', fontSize: 11, color: '#bbb' }}>
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Calendar grid */}
+      <div className="flex flex-col gap-[2px]">
+        {weeks.map((row, wi) => (
+          <div key={wi} className="grid grid-cols-7 gap-[2px]">
+            {row.map((cell, di) => (
+              <div
+                key={di}
+                title={tooltipText(cell)}
+                className="rounded-[3px] flex items-center justify-center transition-transform hover:scale-[1.06] cursor-default"
+                style={{
+                  aspectRatio: '1',
+                  fontSize: 11,
+                  fontFamily: 'monospace',
+                  userSelect: 'none',
+                  ...cellStyle(cell),
+                }}
+              >
+                {cell.inMonth ? cell.dayOfMonth : ''}
+              </div>
+            ))}
+          </div>
+        ))}
       </div>
 
       {/* Status line + legend */}
@@ -219,22 +215,22 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
         <div>
           {isCurrentMonth && (
             todayWrote ? (
-              <span className="text-[12px] font-sans" style={{ color: '#639922' }}>
-                今天亮了 · {month + 1}月第 {monthDays} 次 ✦
+              <span style={{ fontFamily: 'monospace', fontSize: 12, color: '#639922' }}>
+                今天亮了 · {month + 1}月第{todayN}次 ✦
               </span>
             ) : (
-              <Link href="/write" className="text-[12px] font-sans text-stone-400 hover:text-stone-700 transition-colors">
+              <Link href="/write" className="transition-colors" style={{ fontFamily: 'monospace', fontSize: 12, color: '#bbb' }}>
                 今天还没种字——哪怕一句话 →
               </Link>
             )
           )}
         </div>
         <div className="flex items-center gap-1">
-          <span className="text-[10px] text-stone-400 font-sans">少</span>
-          {['#e8e6e0', '#C0DD97', '#97C459', '#3B6D11'].map((c, i) => (
+          <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#bbb' }}>少</span>
+          {(['#e8e6e0', '#C0DD97', '#97C459', '#3B6D11'] as const).map((c, i) => (
             <div key={i} className="rounded-[2px]" style={{ width: 9, height: 9, background: c }} />
           ))}
-          <span className="text-[10px] text-stone-400 font-sans">多</span>
+          <span style={{ fontFamily: 'monospace', fontSize: 10, color: '#bbb' }}>多</span>
         </div>
       </div>
     </div>

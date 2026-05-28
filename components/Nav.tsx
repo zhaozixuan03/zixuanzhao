@@ -7,7 +7,7 @@ export default function Nav({ isAuthed }: { isAuthed?: boolean }) {
 
   return (
     <nav className="flex justify-between items-center py-8 mb-2 border-b border-stone-100">
-      <Link href="/" style={{ fontFamily: "'Noto Serif SC', Georgia, serif" }} className="text-[15px] text-stone-700 hover:text-stone-900 transition-colors">
+      <Link href="/" className="text-[12px] font-sans transition-colors" style={{ color: '#999' }}>
         赵子萱
       </Link>
       <div className="flex gap-7">

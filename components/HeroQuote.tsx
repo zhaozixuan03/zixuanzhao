@@ -38,10 +38,10 @@ export default function HeroQuote({ posts, dateStr }: Props) {
 
       {/* Name */}
       <h1
-        className="font-serif font-normal text-[52px] sm:text-[80px] leading-[1.05]"
-        style={{ color: '#3B6D11', letterSpacing: '-0.04em', fontWeight: 400 }}
+        className="text-[52px] sm:text-[80px]"
+        style={{ fontFamily: 'Georgia, serif', fontWeight: 400, lineHeight: 1, letterSpacing: '-0.03em' }}
       >
-        Zixuan Zhao<span style={{ color: '#3B6D11', fontSize: '0.4em', verticalAlign: 'super', marginLeft: '0.15em' }}>●</span>
+        <span style={{ color: '#1a1a18' }}>Zixuan </span><span style={{ color: '#27500A' }}>Zhao</span>
       </h1>
 
       {/* Quote */}
