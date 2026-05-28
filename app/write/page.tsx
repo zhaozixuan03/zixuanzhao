@@ -9,38 +9,35 @@ function hslToHex(h: number, s: number, l: number): string {
   const a = s * Math.min(l, 1 - l)
   const f = (n: number) => {
     const k = (n + h * 12) % 12
-    const color = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))
-    return Math.round(255 * color).toString(16).padStart(2, '0')
+    const c = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+    return Math.round(255 * c).toString(16).padStart(2, '0')
   }
   return '#' + f(0) + f(8) + f(4)
 }
 
-function getTextColor(hex: string, mode: 'harmony' | 'contrast' | 'bw'): string {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-
-  if (mode === 'bw') return lum > 0.55 ? '#1a1a18' : '#ffffff'
-  if (mode === 'contrast') return lum > 0.55 ? '#1a1a18' : '#f8f8f5'
-
-  const rn = r / 255, gn = g / 255, bn = b / 255
-  const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn)
-  const l = (max + min) / 2
+function getHarmonyColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16) / 255
+  const g = parseInt(hex.slice(3, 5), 16) / 255
+  const b = parseInt(hex.slice(5, 7), 16) / 255
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2
   const d = max - min
   let h = 0, s = 0
   if (d !== 0) {
     s = l > 0.5 ? d / (2 - max - min) : d / (max + min)
-    if (max === rn) h = ((gn - bn) / d + (gn < bn ? 6 : 0)) / 6
-    else if (max === gn) h = ((bn - rn) / d + 2) / 6
-    else h = ((rn - gn) / d + 4) / 6
+    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6
+    else if (max === g) h = ((b - r) / d + 2) / 6
+    else h = ((r - g) / d + 4) / 6
   }
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b
+  if (lum > 0.55) return hslToHex(h, Math.min(1, s * 1.5 + 0.2), Math.max(0.1, l * 0.22))
+  else return hslToHex(h, Math.max(0, s * 0.35), Math.min(0.96, l * 1.9 + 0.25))
+}
 
-  if (lum > 0.55) {
-    return hslToHex(h, Math.min(1, s * 1.5 + 0.3), Math.max(0.08, l * 0.25))
-  } else {
-    return hslToHex(h, Math.max(0, s * 0.4), Math.min(0.95, l * 1.8 + 0.3))
-  }
+function getTextColor(hex: string, mode: 'harmony' | 'contrast' | 'bw'): string {
+  if (mode === 'harmony') return getHarmonyColor(hex)
+  const lum = (0.299 * parseInt(hex.slice(1, 3), 16) + 0.587 * parseInt(hex.slice(3, 5), 16) + 0.114 * parseInt(hex.slice(5, 7), 16)) / 255
+  if (mode === 'bw') return lum > 0.55 ? '#1a1a18' : '#ffffff'
+  return lum > 0.55 ? '#1a1a18' : '#f8f8f5'
 }
 
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false })
@@ -70,7 +67,6 @@ function WriteForm() {
   const [showVisMenu, setShowVisMenu] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [flashing, setFlashing] = useState(false)
 
   useEffect(() => {
     fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'check' }) })
@@ -120,9 +116,9 @@ function WriteForm() {
 
     if (res.ok) {
       const post = await res.json()
-      setTimeout(() => { setSaving(false); setSaved(true) }, 500)
-      setTimeout(() => setFlashing(true), 600)
-      setTimeout(() => router.push(`/p/${post.slug}?new=1`), 2200)
+      setSaving(false)
+      setSaved(true)
+      setTimeout(() => router.push(`/p/${post.slug}?new=1`), 600)
     } else {
       setSaving(false)
     }
@@ -285,13 +281,6 @@ function WriteForm() {
         写完点右上角「发布」，之后随时可以改
       </p>
 
-      {flashing && (
-        <div
-          className="publish-flash"
-          style={{ position: 'fixed', inset: 0, zIndex: 50, background: cardColor, pointerEvents: 'none' }}
-          onAnimationEnd={() => setFlashing(false)}
-        />
-      )}
     </main>
   )
 }

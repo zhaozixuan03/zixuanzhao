@@ -6,6 +6,7 @@ import PostCard from '@/components/PostCard'
 import MasonryGallery from '@/components/MasonryGallery'
 import Nav from '@/components/Nav'
 import FilterBar from '@/components/FilterBar'
+import HeroQuote from '@/components/HeroQuote'
 
 export const revalidate = 0
 
@@ -28,6 +29,8 @@ export default async function Home({
 
   const authed = await isAuthenticated()
   const { posts, photos } = await getData(authed)
+  const now = new Date()
+  const dateStr = `${now.getFullYear()} · ${String(now.getMonth() + 1).padStart(2, '0')} · ${String(now.getDate()).padStart(2, '0')}`
   const postDates = posts.map((p: any) => p.created_at)
   const totalWords = posts.reduce((sum: number, p: any) => sum + countWords(p.content_text || ''), 0)
 
@@ -44,12 +47,11 @@ export default async function Home({
       </div>
 
       {/* Hero */}
-      <div className="max-w-[860px] mx-auto px-6 md:px-16 mb-12">
-        <h1 className="font-serif text-[52px] font-normal leading-[1.25] tracking-[-0.02em] text-stone-800">
-          有时候，真正的抵达，<br />
-          藏在出发之<span className="text-[#639922]">前</span>。
-        </h1>
-        <p className="text-[14px] text-stone-400 mt-5 font-sans">这里是我放字的地方。方方面面，随时随地。</p>
+      <div className="max-w-[860px] mx-auto px-6 md:px-16">
+        <HeroQuote
+          dateStr={dateStr}
+          posts={posts.map((p: any) => ({ id: p.id, title: p.title, content_text: p.content_text || '' }))}
+        />
       </div>
 
       {/* Contribution grid */}

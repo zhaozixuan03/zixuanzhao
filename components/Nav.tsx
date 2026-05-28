@@ -29,6 +29,12 @@ export default function Nav({ isAuthed }: { isAuthed?: boolean }) {
         >
           关于
         </Link>
+        <Link
+          href="/search"
+          className={`text-[12px] font-sans transition-colors ${path === '/search' ? 'text-[#3B6D11]' : 'text-stone-400 hover:text-stone-800'}`}
+        >
+          搜索
+        </Link>
         {isAuthed && (
           <Link
             href="/write"
