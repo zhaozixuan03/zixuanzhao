@@ -15,6 +15,8 @@ export interface Post {
   visibility: Visibility
   slug: string
   image_urls: string[]   // extracted image URLs from content
+  card_color: string | null
+  tags: string[] | null
   created_at: string
   updated_at: string
 }

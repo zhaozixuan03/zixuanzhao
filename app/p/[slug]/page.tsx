@@ -36,6 +36,10 @@ export default async function PostPage({ params }: Props) {
   if (post.visibility === 'private' && !authed) notFound()
 
   return (
+    <>
+      {post.card_color && (
+        <div style={{ background: post.card_color, height: 8 }} />
+      )}
     <main className="max-w-[860px] mx-auto px-6 md:px-16 pb-20">
       <Nav isAuthed={authed} />
 
@@ -79,5 +83,6 @@ export default async function PostPage({ params }: Props) {
         </Link>
       </div>
     </main>
+    </>
   )
 }

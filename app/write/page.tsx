@@ -6,6 +6,8 @@ import { Visibility } from '@/lib/supabase'
 import { Eye, Lock, ChevronDown, Trash2 } from 'lucide-react'
 
 const Editor = dynamic(() => import('@/components/Editor'), { ssr: false })
+const ColorPicker = dynamic(() => import('@/components/ColorPicker'), { ssr: false })
+const TagInput = dynamic(() => import('@/components/TagInput'), { ssr: false })
 
 const VIS_OPTIONS: { value: Visibility; label: string; desc: string; icon: React.ReactNode }[] = [
   { value: 'public', label: '公开', desc: '所有人可见', icon: <Eye size={13} /> },
@@ -23,6 +25,8 @@ function WriteForm() {
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [visibility, setVisibility] = useState<Visibility>('private')
+  const [cardColor, setCardColor] = useState('#A8DADC')
+  const [tags, setTags] = useState<string[]>([])
   const [showVisMenu, setShowVisMenu] = useState(false)
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
@@ -32,7 +36,6 @@ function WriteForm() {
       .then(r => setAuthed(r.ok))
       .catch(() => setAuthed(false))
 
-    // Actually check auth status via a posts fetch
     fetch('/api/posts')
       .then(r => {
         if (editId) {
@@ -42,6 +45,8 @@ function WriteForm() {
               setTitle(post.title || '')
               setContent(post.content || '')
               setVisibility(post.visibility)
+              if (post.card_color) setCardColor(post.card_color)
+              if (post.tags) setTags(post.tags)
             }
           })
         }
@@ -63,8 +68,8 @@ function WriteForm() {
     setSaving(true)
     const method = editId ? 'PATCH' : 'POST'
     const body = editId
-      ? { id: editId, title, content, visibility }
-      : { title, content, visibility }
+      ? { id: editId, title, content, visibility, card_color: cardColor, tags }
+      : { title, content, visibility, card_color: cardColor, tags }
 
     const res = await fetch('/api/posts', {
       method,
@@ -75,9 +80,7 @@ function WriteForm() {
     if (res.ok) {
       const post = await res.json()
       setSaved(true)
-      setTimeout(() => {
-        router.push(`/p/${post.slug}`)
-      }, 800)
+      setTimeout(() => router.push(`/p/${post.slug}`), 800)
     }
     setSaving(false)
   }
@@ -92,7 +95,6 @@ function WriteForm() {
     router.push('/')
   }
 
-  // Login screen
   if (authed === false) {
     return (
       <div className="min-h-screen flex items-center justify-center px-5">
@@ -121,7 +123,7 @@ function WriteForm() {
 
   return (
     <main className="max-w-[860px] mx-auto px-6 md:px-16 pb-20">
-      {/* Minimal header */}
+      {/* Header */}
       <div className="flex justify-between items-center py-6 mb-2">
         <a href="/" className="text-[11px] tracking-[0.15em] text-stone-400 font-sans">← zixuanzhao</a>
         <div className="flex items-center gap-3">
@@ -189,8 +191,32 @@ function WriteForm() {
         placeholder="从这里开始写…"
       />
 
-      <p className="mt-3 text-[11px] text-stone-400 font-sans text-right">
-        写完点右上角「发布」，之后随时可以改可见性
+      {/* Color + Tags */}
+      <div className="mt-8 space-y-6">
+        <div>
+          <div className="text-[11px] text-stone-400 font-sans mb-3">卡片颜色</div>
+          <ColorPicker value={cardColor} onChange={setCardColor} />
+          <div className="mt-3 flex items-center gap-2">
+            <span className="text-[11px] text-stone-400 font-sans">预览：</span>
+            <div
+              className="px-3 py-1.5 rounded font-mono text-[12px]"
+              style={{ background: cardColor }}
+            >
+              {title || '文章标题'}
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div className="text-[11px] text-stone-400 font-sans mb-3">标签</div>
+          <div className="border border-stone-200 rounded-lg px-3 py-2">
+            <TagInput value={tags} onChange={setTags} />
+          </div>
+        </div>
+      </div>
+
+      <p className="mt-4 text-[11px] text-stone-400 font-sans text-right">
+        写完点右上角「发布」，之后随时可以改
       </p>
     </main>
   )
