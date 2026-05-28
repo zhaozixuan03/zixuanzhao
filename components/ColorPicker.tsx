@@ -29,8 +29,6 @@ function hexToHsv(hex: string): [number, number, number] {
 
 interface Props { value: string; onChange: (hex: string) => void }
 
-const SIZE = 160
-
 export default function ColorPicker({ value, onChange }: Props) {
   const init = /^#[0-9a-f]{6}$/i.test(value) ? hexToHsv(value) : [210, 0.45, 0.82] as [number, number, number]
   const [hue, setHue] = useState(init[0])
@@ -134,51 +132,53 @@ export default function ColorPicker({ value, onChange }: Props) {
   const hex = hsvToHex(hue, sat, bri)
 
   return (
-    <div className="flex items-start gap-4">
-      <div>
-        {/* SV block */}
-        <div
-          ref={svRef}
-          onMouseDown={e => { svDragging.current = true; updateSv(e.clientX, e.clientY) }}
-          style={{
-            width: SIZE, height: SIZE, position: 'relative', cursor: 'crosshair',
-            borderRadius: 4, overflow: 'hidden', userSelect: 'none',
-            background: `hsl(${hue}, 100%, 50%)`,
-          }}
-        >
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, white, transparent)' }} />
-          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, black)' }} />
-          <div style={{
-            position: 'absolute', pointerEvents: 'none',
-            left: sat * SIZE - 5, top: (1 - bri) * SIZE - 5,
-            width: 10, height: 10, border: '2px solid white', borderRadius: '50%',
-            boxShadow: '0 0 2px rgba(0,0,0,0.4)',
-          }} />
+    <div style={{ maxWidth: 500 }}>
+      <div className="flex items-start gap-4">
+        <div style={{ flex: 1 }}>
+          {/* SV block */}
+          <div
+            ref={svRef}
+            onMouseDown={e => { svDragging.current = true; updateSv(e.clientX, e.clientY) }}
+            style={{
+              width: '100%', height: 240, position: 'relative', cursor: 'crosshair',
+              borderRadius: 4, overflow: 'hidden', userSelect: 'none',
+              background: `hsl(${hue}, 100%, 50%)`,
+            }}
+          >
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to right, white, transparent)' }} />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent, black)' }} />
+            <div style={{
+              position: 'absolute', pointerEvents: 'none',
+              left: `calc(${sat * 100}% - 5px)`, top: `calc(${(1 - bri) * 100}% - 5px)`,
+              width: 10, height: 10, border: '2px solid white', borderRadius: '50%',
+              boxShadow: '0 0 2px rgba(0,0,0,0.4)',
+            }} />
+          </div>
+
+          {/* Hue strip */}
+          <div
+            ref={hueRef}
+            onMouseDown={e => { hueDragging.current = true; updateHue(e.clientX) }}
+            style={{
+              marginTop: 8, width: '100%', height: 20, cursor: 'crosshair', borderRadius: 10,
+              position: 'relative', userSelect: 'none',
+              background: 'linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)',
+            }}
+          >
+            <div style={{
+              position: 'absolute', pointerEvents: 'none',
+              left: `calc(${(hue / 360) * 100}% - 5px)`, top: -2,
+              width: 10, height: 24, border: '2px solid white', borderRadius: 4,
+              boxShadow: '0 0 2px rgba(0,0,0,0.4)',
+            }} />
+          </div>
         </div>
 
-        {/* Hue strip */}
-        <div
-          ref={hueRef}
-          onMouseDown={e => { hueDragging.current = true; updateHue(e.clientX) }}
-          style={{
-            marginTop: 8, width: SIZE, height: 16, cursor: 'crosshair', borderRadius: 4,
-            position: 'relative', userSelect: 'none',
-            background: 'linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)',
-          }}
-        >
-          <div style={{
-            position: 'absolute', pointerEvents: 'none',
-            left: (hue / 360) * SIZE - 5, top: -2,
-            width: 10, height: 20, border: '2px solid white', borderRadius: 2,
-            boxShadow: '0 0 2px rgba(0,0,0,0.4)',
-          }} />
+        {/* Preview + hex */}
+        <div className="flex flex-col gap-2 pt-1">
+          <div style={{ width: 48, height: 48, background: hex, borderRadius: 8, border: '1px solid rgba(0,0,0,0.1)' }} />
+          <span className="text-[11px] font-mono text-stone-400 select-all">{hex}</span>
         </div>
-      </div>
-
-      {/* Preview + hex */}
-      <div className="flex flex-col gap-2 pt-1">
-        <div style={{ width: 48, height: 48, background: hex, borderRadius: 6, border: '1px solid rgba(0,0,0,0.1)' }} />
-        <span className="text-[11px] font-mono text-stone-400 select-all">{hex}</span>
       </div>
     </div>
   )

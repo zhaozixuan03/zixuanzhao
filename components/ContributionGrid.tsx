@@ -119,13 +119,20 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
     const isToday = cell.key === todayKey && isCurrentMonth
     if (isToday) {
       const wrote = (counts[todayKey] || 0) > 0
+      const todayBase: React.CSSProperties = {
+        boxShadow: '0 0 0 3px rgba(99,153,34,0.2)',
+        position: 'relative',
+        zIndex: 1,
+        fontWeight: 500,
+      }
       if (wrote) {
-        return { background: '#3B6D11', color: '#fff' }
+        return { ...todayBase, background: '#3B6D11', color: '#EAF3DE' }
       }
       return {
+        ...todayBase,
         background: 'transparent',
-        border: '2px dashed #97C459',
-        color: '#97C459',
+        border: '2.5px dashed #97C459',
+        color: '#3B6D11',
       }
     }
     if (cell.isFuture) return { background: '#f0ede6', color: '#ccc' }

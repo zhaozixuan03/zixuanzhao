@@ -253,7 +253,8 @@ function WriteForm() {
                       key={m}
                       onClick={() => setTextMode(m)}
                       title={label}
-                      className={`flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded border transition-all ${
+                      style={{ flex: 1, height: 32 }}
+                      className={`flex items-center justify-center gap-1 text-[10px] font-mono px-2 rounded border transition-all ${
                         textMode === m
                           ? 'border-stone-500 bg-stone-100 text-stone-700'
                           : 'border-stone-200 text-stone-400 hover:border-stone-400'
