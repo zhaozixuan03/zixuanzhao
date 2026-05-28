@@ -69,16 +69,17 @@ export default function SearchPage() {
           onChange={e => setQuery(e.target.value)}
           placeholder="搜索我写过的字…"
           autoFocus
-          className="w-full font-mono text-[20px] bg-transparent border-none focus:outline-none text-stone-800 placeholder-stone-300"
+          className="w-full bg-transparent border-none focus:outline-none"
+          style={{ fontFamily: "'Noto Serif SC', Georgia, serif", fontSize: 22, color: '#555' }}
         />
         <div className="border-b border-stone-200 mt-3 mb-8" />
 
         {loading && (
-          <p className="text-[12px] text-stone-400 font-mono">搜索中…</p>
+          <p className="font-mono text-[12px]" style={{ color: '#ccc' }}>搜索中…</p>
         )}
 
         {!loading && searched && results.length === 0 && (
-          <p className="text-[13px] text-stone-400 font-mono py-16 text-center">
+          <p className="py-16 text-center" style={{ fontFamily: "'Noto Serif SC', Georgia, serif", fontSize: 14, color: '#888' }}>
             没有找到关于「{query}」的字
           </p>
         )}
@@ -92,7 +93,7 @@ export default function SearchPage() {
         )}
 
         {!searched && !loading && (
-          <p className="text-[11px] text-stone-300 font-mono text-center pt-16">
+          <p className="font-mono text-center pt-16" style={{ fontSize: 11, color: '#ccc' }}>
             按 ESC 返回首页
           </p>
         )}

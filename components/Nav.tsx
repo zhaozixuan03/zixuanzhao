@@ -7,8 +7,8 @@ export default function Nav({ isAuthed }: { isAuthed?: boolean }) {
 
   return (
     <nav className="flex justify-between items-center py-8 mb-2 border-b border-stone-100">
-      <Link href="/" className="font-serif text-[13px] tracking-[0.08em] text-stone-600 hover:text-stone-800 transition-colors">
-        zixuanzhao
+      <Link href="/" style={{ fontFamily: "'Noto Serif SC', Georgia, serif" }} className="text-[15px] text-stone-700 hover:text-stone-900 transition-colors">
+        赵子萱
       </Link>
       <div className="flex gap-7">
         <Link

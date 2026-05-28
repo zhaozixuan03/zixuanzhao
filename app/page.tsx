@@ -57,7 +57,7 @@ export default async function Home() {
       <div className="max-w-[860px] mx-auto px-6 md:px-16">
         <MasonryGallery photos={photos} isOwner={authed} />
         <footer className="pt-6 border-t border-stone-200 flex justify-between items-center">
-          <span className="text-[11px] text-stone-400 font-sans">zixuanzhao.com</span>
+          <span className="text-[11px] text-stone-400 font-sans">zorazhao.com</span>
           <span className="text-[11px] text-stone-400 font-serif italic">带着这些感恩，动身。</span>
         </footer>
       </div>
