@@ -1,14 +1,13 @@
 'use client'
 import { useRef, useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 
 interface Props {
   tags: string[]
-  active: string | undefined
+  active: string
+  onTagChange: (tag: string) => void
 }
 
-export default function FilterBar({ tags, active }: Props) {
-  const router = useRouter()
+export default function FilterBar({ tags, active, onTagChange }: Props) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [showLeft, setShowLeft] = useState(false)
   const [showRight, setShowRight] = useState(false)
@@ -29,11 +28,6 @@ export default function FilterBar({ tags, active }: Props) {
     }
   }, [tags])
 
-  const go = (tag: string | null) => {
-    if (tag) router.push(`/?tag=${encodeURIComponent(tag)}`)
-    else router.push('/')
-  }
-
   const cap = (isActive: boolean) =>
     `shrink-0 text-[11px] font-mono px-3 py-1 rounded-[30px] border transition-colors cursor-pointer whitespace-nowrap ${
       isActive
@@ -43,14 +37,12 @@ export default function FilterBar({ tags, active }: Props) {
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* Left fade */}
       <div style={{
         position: 'absolute', left: 0, top: 0, bottom: 0, width: 40, zIndex: 1,
         background: 'linear-gradient(to left, transparent, #f5f4f0)',
         pointerEvents: 'none',
         opacity: showLeft ? 1 : 0, transition: 'opacity 0.2s',
       }} />
-      {/* Right fade */}
       <div style={{
         position: 'absolute', right: 0, top: 0, bottom: 0, width: 40, zIndex: 1,
         background: 'linear-gradient(to right, transparent, #f5f4f0)',
@@ -62,9 +54,9 @@ export default function FilterBar({ tags, active }: Props) {
         style={{ overflowX: 'auto', scrollbarWidth: 'none', msOverflowStyle: 'none' } as React.CSSProperties}
         className="flex gap-2 [&::-webkit-scrollbar]:hidden"
       >
-        <button onClick={() => go(null)} className={cap(!active)}>全部</button>
+        <button onClick={() => onTagChange('全部')} className={cap(active === '全部')}>全部</button>
         {tags.map(tag => (
-          <button key={tag} onClick={() => go(tag)} className={cap(active === tag)}>{tag}</button>
+          <button key={tag} onClick={() => onTagChange(tag)} className={cap(active === tag)}>{tag}</button>
         ))}
       </div>
     </div>
