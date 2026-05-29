@@ -117,24 +117,24 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
   function cellStyle(cell: Cell): React.CSSProperties {
     if (!cell.inMonth) return { background: 'transparent' }
     const isToday = cell.key === todayKey && isCurrentMonth
-    if (isToday) {
-      const wrote = (counts[todayKey] || 0) > 0
-      if (wrote) {
-        return { position: 'relative', zIndex: 1, background: '#3B6D11', color: '#EAF3DE', fontWeight: 500 }
-      }
-      return {
-        position: 'relative', zIndex: 1,
-        background: '#f5f4f0',
-        border: '2px solid #97C459',
-        color: '#3B6D11', fontWeight: 600,
-      }
-    }
-    if (cell.isFuture) return { background: '#f0ede6', color: '#ccc' }
+    if (!isToday && cell.isFuture) return { background: '#f0ede6', color: '#ccc' }
     const c = counts[cell.key] || 0
-    if (c === 0) return { background: '#e8e6e0', color: '#999' }
-    if (c === 1) return { background: '#C0DD97', color: '#5a7a2a' }
-    if (c <= 3) return { background: '#97C459', color: '#3B6D11' }
-    return { background: '#3B6D11', color: '#fff' }
+    let base: React.CSSProperties
+    if (c === 0) {
+      base = isToday
+        ? { background: 'transparent', border: '2px solid #97C459', color: '#3B6D11' }
+        : { background: '#e8e6e0', color: '#999' }
+    } else if (c === 1) {
+      base = { background: '#C0DD97', color: '#5a7a2a' }
+    } else if (c <= 3) {
+      base = { background: '#97C459', color: '#3B6D11' }
+    } else {
+      base = { background: '#3B6D11', color: '#fff' }
+    }
+    if (isToday) {
+      return { ...base, position: 'relative', zIndex: 1, boxShadow: '0 0 0 2px rgba(99,153,34,0.25)' }
+    }
+    return base
   }
 
   function tooltipText(cell: Cell): string {
@@ -193,7 +193,8 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
           <div key={wi} className="grid grid-cols-7 gap-[2px]">
             {row.map((cell, di) => {
               const isToday = cell.key === todayKey && isCurrentMonth
-              const dotColor = (counts[todayKey] || 0) > 0 ? 'white' : '#97C459'
+              const todayCount = counts[cell.key] || 0
+              const dotColor = todayCount <= 1 ? '#639922' : 'white'
               return (
                 <div
                   key={di}
@@ -215,7 +216,7 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
                   {isToday && (
                     <div style={{
                       position: 'absolute', top: 8, right: 8,
-                      width: 7, height: 7, borderRadius: '50%',
+                      width: 6, height: 6, borderRadius: '50%',
                       background: dotColor, pointerEvents: 'none',
                     }} />
                   )}
