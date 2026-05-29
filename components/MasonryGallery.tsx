@@ -64,7 +64,8 @@ export default function MasonryGallery({ photos, isOwner }: Props) {
 
   return (
     <section id="photos-section" className="py-12">
-      <div className="flex items-baseline justify-between mb-4">
+      {/* Header — always on top, position:relative + z-index keeps it above the stack */}
+      <div className="flex items-baseline justify-between mb-6" style={{ position: 'relative', zIndex: 2 }}>
         <span className="text-[10px] tracking-[0.12em] text-stone-400 font-sans">PHOTOS</span>
         {isOwner && (
           <>
@@ -88,11 +89,10 @@ export default function MasonryGallery({ photos, isOwner }: Props) {
 
       {photos.length > 0 ? (
         <div
-          style={{ cursor: 'pointer' }}
+          style={{ cursor: 'pointer', position: 'relative', zIndex: 1 }}
           onClick={() => router.push('/photos')}
         >
-          {/* Stack */}
-          <div style={{ position: 'relative', aspectRatio: '3/2', overflow: 'visible', isolation: 'isolate' }}>
+          <div style={{ position: 'relative', aspectRatio: '3/2', isolation: 'isolate' }}>
             {visiblePhotos.map((photo, idx) => {
               const off = STACK_OFFSETS[idx]
               return (
@@ -117,7 +117,6 @@ export default function MasonryGallery({ photos, isOwner }: Props) {
               )
             })}
 
-            {/* Count badge */}
             <div style={{
               position: 'absolute', top: -8, right: -8, zIndex: 10,
               width: 30, height: 30, borderRadius: '50%',
@@ -129,10 +128,6 @@ export default function MasonryGallery({ photos, isOwner }: Props) {
               {photos.length}
             </div>
           </div>
-
-          <p style={{ marginTop: 16, fontFamily: 'monospace', fontSize: 12, color: '#aaa' }}>
-            查看全部影像 →
-          </p>
         </div>
       ) : (
         <p className="text-[12px] text-stone-400 font-sans">还没有照片，点上方上传第一张。</p>

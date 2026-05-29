@@ -63,6 +63,7 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
     setEditing(false)
   }
 
+  const closeLightbox = () => { if (!editing) setSelectedIdx(null) }
   const prev = () => setSelectedIdx(i => i !== null ? Math.max(0, i - 1) : null)
   const next = () => setSelectedIdx(i => i !== null ? Math.min(photos.length - 1, i + 1) : null)
 
@@ -97,7 +98,7 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
                     cursor: 'pointer',
                   }}
                 >
-                  {v === 'magazine' ? '杂志流' : '网格'}
+                  {v === 'magazine' ? '画廊' : '全览'}
                 </button>
               ))}
             </div>
@@ -107,38 +108,42 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
         {/* Content */}
         <div style={{ maxWidth: 860, margin: '0 auto', padding: '32px 24px 80px' }}>
           {view === 'magazine' ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 48 }}>
+            /* 画廊：2-column grid */
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
               {photos.map((photo, idx) => (
                 <div key={photo.id} style={{ cursor: 'pointer' }} onClick={() => setSelectedIdx(idx)}>
                   <img
                     src={photo.url}
                     alt={photo.caption || ''}
-                    style={{ width: '100%', display: 'block', borderRadius: 6 }}
+                    style={{ width: '100%', display: 'block', borderRadius: 4 }}
                     loading="lazy"
                   />
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 10, gap: 16 }}>
-                    <p style={{ fontFamily: 'Georgia, serif', fontSize: 14, color: '#555', margin: 0 }}>
-                      {photo.caption || ''}
-                    </p>
-                    <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#bbb', flexShrink: 0 }}>
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontFamily: 'monospace', fontSize: 11, color: '#aaa' }}>
                       {formatDateFull(photo.created_at)}
-                    </span>
+                    </div>
+                    {photo.caption && (
+                      <div style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: '#666', marginTop: 3 }}>
+                        {photo.caption}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 3 }}>
+            /* 全览：CSS columns masonry */
+            <div style={{ columns: 3, columnGap: 4 }}>
               {photos.map((photo, idx) => (
                 <div
                   key={photo.id}
-                  style={{ aspectRatio: '1', overflow: 'hidden', cursor: 'pointer' }}
+                  style={{ breakInside: 'avoid', marginBottom: 4, cursor: 'pointer' }}
                   onClick={() => setSelectedIdx(idx)}
                 >
                   <img
                     src={photo.url}
                     alt={photo.caption || ''}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'opacity 0.2s' }}
+                    style={{ width: '100%', display: 'block', transition: 'opacity 0.2s' }}
                     loading="lazy"
                     onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.opacity = '0.85' }}
                     onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.opacity = '1' }}
@@ -155,94 +160,109 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
         <div
           style={{
             position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.93)',
-            zIndex: 50, display: 'flex', flexDirection: 'column',
+            zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
-          onClick={() => { if (!editing) setSelectedIdx(null) }}
+          onClick={closeLightbox}
+          onTouchEnd={e => { e.preventDefault(); closeLightbox() }}
         >
-          {/* Image area */}
-          <div
+          {/* Close button */}
+          <button
+            onClick={e => { e.stopPropagation(); setSelectedIdx(null) }}
             style={{
-              flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              position: 'relative', padding: '24px 72px', overflow: 'hidden',
+              position: 'absolute', top: 16, right: 16,
+              color: 'white', background: 'none', border: 'none',
+              fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 4,
             }}
-            onClick={e => e.stopPropagation()}
           >
-            {selectedIdx! > 0 && (
-              <button
-                onClick={prev}
-                style={{
-                  position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
-                  color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer',
-                }}
-              >
-                <ChevronLeft size={32} />
-              </button>
-            )}
+            ✕
+          </button>
 
+          {/* Prev arrow */}
+          {selectedIdx! > 0 && (
+            <button
+              onClick={e => { e.stopPropagation(); prev() }}
+              style={{
+                position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
+                color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer',
+              }}
+            >
+              <ChevronLeft size={32} />
+            </button>
+          )}
+
+          {/* Image + info — centered, stacked vertically */}
+          <div
+            style={{ display: 'flex', flexDirection: 'column', maxWidth: '85vw', minWidth: 280 }}
+            onClick={e => e.stopPropagation()}
+            onTouchEnd={e => e.stopPropagation()}
+          >
             <img
               src={selected.url}
               alt={selected.caption || ''}
-              style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: 4 }}
+              style={{
+                maxWidth: '100%', maxHeight: '70vh',
+                objectFit: 'contain', display: 'block',
+                borderRadius: '4px 4px 0 0',
+              }}
             />
-
-            {selectedIdx! < photos.length - 1 && (
-              <button
-                onClick={next}
-                style={{
-                  position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
-                  color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer',
-                }}
-              >
-                <ChevronRight size={32} />
-              </button>
-            )}
-          </div>
-
-          {/* Info bar */}
-          <div
-            style={{ background: '#111', padding: '16px 24px', flexShrink: 0 }}
-            onClick={e => e.stopPropagation()}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 6 }}>
-              {editing ? (
-                <div
-                  ref={captionRef}
-                  contentEditable
-                  suppressContentEditableWarning
-                  onKeyDown={e => {
-                    e.stopPropagation()
-                    if (e.key === 'Enter') { e.preventDefault(); saveCaption() }
-                  }}
-                  style={{
-                    flex: 1, color: 'white', fontSize: 14, outline: 'none', minHeight: 22,
-                    fontFamily: 'Georgia, serif',
-                    borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: 2,
-                  }}
-                />
-              ) : (
-                <p style={{ flex: 1, color: 'rgba(255,255,255,0.65)', fontSize: 14, fontFamily: 'Georgia, serif', margin: 0 }}>
-                  {selected.caption || '暂无备注'}
-                </p>
-              )}
-              {isOwner && (
-                <button
-                  onClick={editing ? saveCaption : () => setEditing(true)}
-                  style={{
-                    fontSize: 11, fontFamily: 'monospace',
-                    color: editing ? '#97C459' : '#888',
-                    background: 'none', cursor: 'pointer', flexShrink: 0,
-                    padding: '3px 10px', borderRadius: 4,
-                    border: `0.5px solid ${editing ? '#639922' : '#444'}`,
-                  }}
-                >
-                  {editing ? '保存' : '编辑备注'}
-                </button>
-              )}
+            <div style={{ background: '#111', padding: '12px 16px', borderRadius: '0 0 4px 4px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+                {editing ? (
+                  <div
+                    ref={captionRef}
+                    contentEditable
+                    suppressContentEditableWarning
+                    onKeyDown={e => {
+                      e.stopPropagation()
+                      if (e.key === 'Enter') { e.preventDefault(); saveCaption() }
+                    }}
+                    style={{
+                      flex: 1, color: 'white', fontSize: 14, outline: 'none', minHeight: 22,
+                      fontFamily: 'Georgia, serif',
+                      borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: 2,
+                    }}
+                  />
+                ) : (
+                  <p style={{
+                    flex: 1, fontSize: 14, fontFamily: 'Georgia, serif', margin: 0,
+                    color: selected.caption ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.22)',
+                  }}>
+                    {selected.caption || '加点备注…'}
+                  </p>
+                )}
+                {isOwner && (
+                  <button
+                    onClick={editing ? saveCaption : () => setEditing(true)}
+                    style={{
+                      fontSize: 13, fontFamily: 'monospace',
+                      color: editing ? '#97C459' : '#888',
+                      background: 'none', cursor: 'pointer', flexShrink: 0,
+                      padding: '6px 14px', borderRadius: 4,
+                      border: `0.5px solid ${editing ? '#639922' : '#444'}`,
+                    }}
+                  >
+                    {editing ? '保存' : '编辑备注'}
+                  </button>
+                )}
+              </div>
+              <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(255,255,255,0.25)', margin: 0 }}>
+                {formatDateFull(selected.created_at)}
+              </p>
             </div>
-            <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(255,255,255,0.25)', margin: 0 }}>
-              {formatDateFull(selected.created_at)}
-            </p>
           </div>
+
+          {/* Next arrow */}
+          {selectedIdx! < photos.length - 1 && (
+            <button
+              onClick={e => { e.stopPropagation(); next() }}
+              style={{
+                position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
+                color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer',
+              }}
+            >
+              <ChevronRight size={32} />
+            </button>
+          )}
         </div>
       )}
     </>

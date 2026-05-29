@@ -169,7 +169,7 @@ export default function ContributionGrid({ dates, totalPosts, totalWords }: Prop
           >→</button>
         </div>
         <div className="text-right">
-          <div style={{ fontFamily: 'Georgia, serif', fontSize: 32, color: '#3B6D11', lineHeight: 1 }}>
+          <div className="text-[32px] md:text-[40px]" style={{ fontFamily: 'Georgia, serif', color: '#3B6D11', lineHeight: 1 }}>
             {monthPosts}
           </div>
           <div style={{ fontFamily: 'monospace', fontSize: 11, color: '#aaa', marginTop: 2 }}>

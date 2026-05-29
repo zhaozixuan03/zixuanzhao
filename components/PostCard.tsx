@@ -14,7 +14,7 @@ export default function PostCard({ post }: Props) {
       style={{ background: bg }}
       className="block p-[18px] min-h-[200px] flex flex-col justify-between hover:opacity-[0.88] transition-opacity duration-150"
     >
-      <div style={{ fontFamily: "'Noto Serif SC', Georgia, serif", fontSize: 15, lineHeight: 1.6, fontWeight: 400, color: tc }}>
+      <div className="text-[15px] md:text-[17px]" style={{ fontFamily: "'Noto Serif SC', Georgia, serif", lineHeight: 1.6, fontWeight: 400, color: tc }}>
         {post.title || getExcerpt(post.content_text, 60)}
       </div>
       <div className="flex justify-between items-end mt-4">
