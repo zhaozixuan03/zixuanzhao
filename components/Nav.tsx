@@ -17,12 +17,12 @@ export default function Nav({ isAuthed }: { isAuthed?: boolean }) {
         >
           文字
         </Link>
-        <button
-          onClick={() => document.getElementById('photos-section')?.scrollIntoView({ behavior: 'smooth' })}
-          className="text-[12px] font-sans text-stone-400 hover:text-stone-800 transition-colors cursor-pointer"
+        <Link
+          href="/photos"
+          className={`text-[12px] font-sans transition-colors ${path === '/photos' ? 'text-[#3B6D11]' : 'text-stone-400 hover:text-stone-800'}`}
         >
           影像
-        </button>
+        </Link>
         <Link
           href="/about"
           className={`text-[12px] font-sans transition-colors ${path === '/about' ? 'text-[#3B6D11]' : 'text-stone-400 hover:text-stone-800'}`}

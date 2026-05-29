@@ -19,6 +19,21 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(data)
 }
 
+export async function PATCH(req: NextRequest) {
+  if (!isAuthenticatedFromRequest(req)) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+  const { photo_id, caption } = await req.json()
+  const { data, error } = await supabase
+    .from('photos')
+    .update({ caption })
+    .eq('id', photo_id)
+    .select()
+    .single()
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
 export async function DELETE(req: NextRequest) {
   if (!isAuthenticatedFromRequest(req)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
