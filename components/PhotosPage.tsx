@@ -225,7 +225,7 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
         {/* Content */}
         <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px 80px' }}>
           {view === 'magazine' ? (
-            <div style={{ display: 'flex', gap: 12 }}>
+            <div style={{ display: 'flex', gap: 16 }}>
               {/* Left column: indexes 0, 2, 4… */}
               <div style={{ flex: 1 }}>
                 {photos.filter((_, i) => i % 2 === 0).map((photo, colIdx) => {
@@ -233,7 +233,7 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
                   return (
                     <div
                       key={photo.id}
-                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 12 }}
+                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 32 }}
                       onClick={() => openPhoto(idx)}
                     >
                       <img
@@ -273,13 +273,13 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
                 })}
               </div>
               {/* Right column: indexes 1, 3, 5… — offset 60px down */}
-              <div style={{ flex: 1, marginTop: 60 }}>
+              <div style={{ flex: 1, marginTop: 48 }}>
                 {photos.filter((_, i) => i % 2 === 1).map((photo, colIdx) => {
                   const idx = colIdx * 2 + 1
                   return (
                     <div
                       key={photo.id}
-                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 12 }}
+                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 32 }}
                       onClick={() => openPhoto(idx)}
                     >
                       <img
