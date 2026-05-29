@@ -35,6 +35,17 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
   const [photos, setPhotos] = useState(initial)
   const [view, setView] = useState<'magazine' | 'grid'>('magazine')
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
+
+  // Persist view preference so it survives any remount (e.g. after delete triggers re-render)
+  useEffect(() => {
+    const stored = localStorage.getItem('photosView')
+    if (stored === 'grid' || stored === 'magazine') setView(stored)
+  }, [])
+
+  const switchView = (v: 'magazine' | 'grid') => {
+    localStorage.setItem('photosView', v)
+    setView(v)
+  }
   const [editing, setEditing] = useState(false)
   const [manageMode, setManageMode] = useState(false)
   const [uploading, setUploading] = useState(false)
@@ -147,7 +158,7 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
               {(['magazine', 'grid'] as const).map(v => (
                 <button
                   key={v}
-                  onClick={() => setView(v)}
+                  onClick={() => switchView(v)}
                   style={{
                     background: view === v ? '#1a1a18' : 'transparent',
                     color: view === v ? 'white' : '#999',
