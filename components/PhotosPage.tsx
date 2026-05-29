@@ -144,31 +144,40 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
 
           {/* Row 1: nav */}
           <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            display: 'flex', alignItems: 'center',
             padding: '28px 0 16px',
           }}>
-            <button
-              onClick={() => router.push('/')}
-              style={{ fontSize: 12, fontFamily: 'sans-serif', color: '#999', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
-            >
-              ← 返回
-            </button>
-            <span style={{ fontFamily: 'Georgia, serif', fontSize: 16, color: '#333' }}>影像</span>
-            <div style={{ display: 'flex', border: '0.5px solid #ccc', borderRadius: 20, overflow: 'hidden' }}>
-              {(['magazine', 'grid'] as const).map(v => (
-                <button
-                  key={v}
-                  onClick={() => switchView(v)}
-                  style={{
-                    background: view === v ? '#1a1a18' : 'transparent',
-                    color: view === v ? 'white' : '#999',
-                    padding: '4px 14px', fontSize: 11,
-                    fontFamily: 'monospace', border: 'none', cursor: 'pointer',
-                  }}
-                >
-                  {v === 'magazine' ? '画廊' : '全览'}
-                </button>
-              ))}
+            <div style={{ flex: 1 }}>
+              <button
+                onClick={() => router.push('/')}
+                style={{ fontSize: 12, fontFamily: 'sans-serif', color: '#999', cursor: 'pointer', background: 'none', border: 'none', padding: 0 }}
+              >
+                ← 返回
+              </button>
+            </div>
+            <div style={{ flex: 0 }}>
+              <span style={{
+                fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif",
+                fontSize: 17, fontWeight: 400, color: '#1a1a18', whiteSpace: 'nowrap',
+              }}>影像</span>
+            </div>
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
+              <div style={{ display: 'flex', border: '0.5px solid #ccc', borderRadius: 20, overflow: 'hidden' }}>
+                {(['magazine', 'grid'] as const).map(v => (
+                  <button
+                    key={v}
+                    onClick={() => switchView(v)}
+                    style={{
+                      background: view === v ? '#1a1a18' : 'transparent',
+                      color: view === v ? 'white' : '#999',
+                      padding: '4px 14px', fontSize: 11,
+                      fontFamily: 'monospace', border: 'none', cursor: 'pointer',
+                    }}
+                  >
+                    {v === 'magazine' ? '画廊' : '全览'}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -216,47 +225,99 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
         {/* Content */}
         <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px 80px' }}>
           {view === 'magazine' ? (
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-              {photos.map((photo, idx) => (
-                <div
-                  key={photo.id}
-                  style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative' }}
-                  onClick={() => openPhoto(idx)}
-                >
-                  <img
-                    src={photo.url}
-                    alt={photo.caption || ''}
-                    style={{ width: '100%', display: 'block', borderRadius: 4 }}
-                    loading="lazy"
-                  />
-                  {manageMode && (
-                    <button
-                      onClick={e => { e.stopPropagation(); handleDelete(photo) }}
-                      style={{
-                        position: 'absolute', top: 8, right: 8,
-                        width: 26, height: 26, borderRadius: '50%',
-                        background: '#e05252', color: 'white',
-                        border: 'none', cursor: 'pointer',
-                        fontSize: 13, lineHeight: 1,
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
-                      }}
+            <div style={{ display: 'flex', gap: 12 }}>
+              {/* Left column: indexes 0, 2, 4… */}
+              <div style={{ flex: 1 }}>
+                {photos.filter((_, i) => i % 2 === 0).map((photo, colIdx) => {
+                  const idx = colIdx * 2
+                  return (
+                    <div
+                      key={photo.id}
+                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 12 }}
+                      onClick={() => openPhoto(idx)}
                     >
-                      ✕
-                    </button>
-                  )}
-                  <div style={{ marginTop: 8 }}>
-                    <div style={{ fontFamily: 'monospace', fontSize: 11, color: '#aaa' }}>
-                      {formatDateFull(photo.created_at)}
-                    </div>
-                    {photo.caption && (
-                      <div style={{ fontFamily: 'Georgia, serif', fontSize: 13, color: '#666', marginTop: 3 }}>
-                        {photo.caption}
+                      <img
+                        src={photo.url}
+                        alt={photo.caption || ''}
+                        style={{ width: '100%', display: 'block', borderRadius: 4 }}
+                        loading="lazy"
+                      />
+                      {manageMode && (
+                        <button
+                          onClick={e => { e.stopPropagation(); handleDelete(photo) }}
+                          style={{
+                            position: 'absolute', top: 8, right: 8,
+                            width: 26, height: 26, borderRadius: '50%',
+                            background: '#e05252', color: 'white',
+                            border: 'none', cursor: 'pointer',
+                            fontSize: 13, lineHeight: 1,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ fontFamily: 'monospace', fontSize: 11, color: '#aaa' }}>
+                          {formatDateFull(photo.created_at)}
+                        </div>
+                        {photo.caption && (
+                          <div style={{ fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif", fontSize: 13, color: '#666', marginTop: 3 }}>
+                            {photo.caption}
+                          </div>
+                        )}
                       </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+                    </div>
+                  )
+                })}
+              </div>
+              {/* Right column: indexes 1, 3, 5… — offset 60px down */}
+              <div style={{ flex: 1, marginTop: 60 }}>
+                {photos.filter((_, i) => i % 2 === 1).map((photo, colIdx) => {
+                  const idx = colIdx * 2 + 1
+                  return (
+                    <div
+                      key={photo.id}
+                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 12 }}
+                      onClick={() => openPhoto(idx)}
+                    >
+                      <img
+                        src={photo.url}
+                        alt={photo.caption || ''}
+                        style={{ width: '100%', display: 'block', borderRadius: 4 }}
+                        loading="lazy"
+                      />
+                      {manageMode && (
+                        <button
+                          onClick={e => { e.stopPropagation(); handleDelete(photo) }}
+                          style={{
+                            position: 'absolute', top: 8, right: 8,
+                            width: 26, height: 26, borderRadius: '50%',
+                            background: '#e05252', color: 'white',
+                            border: 'none', cursor: 'pointer',
+                            fontSize: 13, lineHeight: 1,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            boxShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                          }}
+                        >
+                          ✕
+                        </button>
+                      )}
+                      <div style={{ marginTop: 8 }}>
+                        <div style={{ fontFamily: 'monospace', fontSize: 11, color: '#aaa' }}>
+                          {formatDateFull(photo.created_at)}
+                        </div>
+                        {photo.caption && (
+                          <div style={{ fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif", fontSize: 13, color: '#666', marginTop: 3 }}>
+                            {photo.caption}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           ) : (
             <div style={{ columns: 3, columnGap: 4 }}>
@@ -358,13 +419,13 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
                     }}
                     style={{
                       flex: 1, color: 'white', fontSize: 14, outline: 'none', minHeight: 22,
-                      fontFamily: 'Georgia, serif',
+                      fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif",
                       borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: 2,
                     }}
                   />
                 ) : (
                   <p style={{
-                    flex: 1, fontSize: 14, fontFamily: 'Georgia, serif', margin: 0,
+                    flex: 1, fontSize: 14, fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif", margin: 0,
                     color: selected.caption ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.22)',
                   }}>
                     {selected.caption || '加点备注…'}
