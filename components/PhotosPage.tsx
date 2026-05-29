@@ -304,8 +304,8 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
             position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.93)',
             zIndex: 50, display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}
-          onClick={closeLightbox}
-          onTouchEnd={e => { e.preventDefault(); closeLightbox() }}
+          onClick={e => { if (e.target === e.currentTarget) closeLightbox() }}
+          onTouchEnd={e => { if (e.target === e.currentTarget) { e.preventDefault(); closeLightbox() } }}
         >
           <button
             onClick={e => { e.stopPropagation(); setSelectedIdx(null) }}
@@ -321,6 +321,7 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
           {selectedIdx! > 0 && (
             <button
               onClick={e => { e.stopPropagation(); prev() }}
+              onTouchEnd={e => { e.stopPropagation(); e.preventDefault(); prev() }}
               style={{
                 position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)',
                 color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer',
@@ -393,6 +394,7 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
           {selectedIdx! < photos.length - 1 && (
             <button
               onClick={e => { e.stopPropagation(); next() }}
+              onTouchEnd={e => { e.stopPropagation(); e.preventDefault(); next() }}
               style={{
                 position: 'absolute', right: 16, top: '50%', transform: 'translateY(-50%)',
                 color: 'rgba(255,255,255,0.6)', background: 'none', border: 'none', cursor: 'pointer',
