@@ -407,31 +407,31 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
               }}
             />
             <div style={{ background: '#111', padding: '12px 16px', borderRadius: '0 0 4px 4px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
-                {editing ? (
-                  <div
-                    ref={captionRef}
-                    contentEditable
-                    suppressContentEditableWarning
-                    onKeyDown={e => {
-                      e.stopPropagation()
-                      if (e.key === 'Enter') { e.preventDefault(); saveCaption() }
-                    }}
-                    style={{
-                      flex: 1, color: 'white', fontSize: 14, outline: 'none', minHeight: 22,
-                      fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif",
-                      borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: 2,
-                    }}
-                  />
-                ) : (
-                  <p style={{
-                    flex: 1, fontSize: 14, fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif", margin: 0,
-                    color: selected.caption ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.22)',
-                  }}>
-                    {selected.caption || '加点备注…'}
-                  </p>
-                )}
-                {isOwner && (
+              {isOwner ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
+                  {editing ? (
+                    <div
+                      ref={captionRef}
+                      contentEditable
+                      suppressContentEditableWarning
+                      onKeyDown={e => {
+                        e.stopPropagation()
+                        if (e.key === 'Enter') { e.preventDefault(); saveCaption() }
+                      }}
+                      style={{
+                        flex: 1, color: 'white', fontSize: 14, outline: 'none', minHeight: 22,
+                        fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif",
+                        borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: 2,
+                      }}
+                    />
+                  ) : (
+                    <p style={{
+                      flex: 1, fontSize: 14, fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif", margin: 0,
+                      color: selected.caption ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.22)',
+                    }}>
+                      {selected.caption || '加点备注…'}
+                    </p>
+                  )}
                   <button
                     onClick={editing ? saveCaption : () => setEditing(true)}
                     style={{
@@ -444,8 +444,15 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
                   >
                     {editing ? '保存' : '编辑备注'}
                   </button>
-                )}
-              </div>
+                </div>
+              ) : selected.caption ? (
+                <p style={{
+                  fontSize: 14, fontFamily: "'Noto Serif SC', Georgia, 'Times New Roman', serif", margin: '0 0 4px',
+                  color: 'rgba(255,255,255,0.65)',
+                }}>
+                  {selected.caption}
+                </p>
+              ) : null}
               <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(255,255,255,0.25)', margin: 0 }}>
                 {formatDateFull(selected.created_at)}
               </p>
