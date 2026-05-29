@@ -233,7 +233,7 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
                   return (
                     <div
                       key={photo.id}
-                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 56 }}
+                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 72 }}
                       onClick={() => openPhoto(idx)}
                     >
                       <img
@@ -279,7 +279,7 @@ export default function PhotosPage({ photos: initial, isOwner }: Props) {
                   return (
                     <div
                       key={photo.id}
-                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 56 }}
+                      style={{ cursor: manageMode ? 'default' : 'pointer', position: 'relative', marginBottom: 72 }}
                       onClick={() => openPhoto(idx)}
                     >
                       <img
