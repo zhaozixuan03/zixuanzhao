@@ -41,6 +41,7 @@ export default function SearchPage() {
         .from('posts')
         .select('*')
         .or(`title.ilike.%${q}%,content_text.ilike.%${q}%`)
+        .is('deleted_at', null)
         .order('created_at', { ascending: false })
 
       if (!authed) {

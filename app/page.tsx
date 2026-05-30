@@ -12,7 +12,7 @@ export const revalidate = 0
 async function getData(authed: boolean) {
   const visFilter = authed ? ['public', 'private'] : ['public']
   const [postsRes, photosRes] = await Promise.all([
-    supabase.from('posts').select('*').in('visibility', visFilter).order('created_at', { ascending: false }),
+    supabase.from('posts').select('*').in('visibility', visFilter).is('deleted_at', null).order('created_at', { ascending: false }),
     supabase.from('photos').select('*').is('post_id', null).order('created_at', { ascending: false }),
   ])
   return { posts: postsRes.data || [], photos: photosRes.data || [] }
