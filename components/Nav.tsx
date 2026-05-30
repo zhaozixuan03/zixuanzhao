@@ -43,6 +43,14 @@ export default function Nav({ isAuthed }: { isAuthed?: boolean }) {
             写 +
           </Link>
         )}
+        {isAuthed && (
+          <Link
+            href="/trash"
+            className={`text-[12px] md:text-[13px] font-mono transition-colors ${path === '/trash' ? 'text-[#3B6D11]' : 'text-stone-300 hover:text-stone-500'}`}
+          >
+            回收站
+          </Link>
+        )}
       </div>
     </nav>
   )

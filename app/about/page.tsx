@@ -21,7 +21,10 @@ export default async function About() {
         <p className="text-stone-400">带着这些感恩，动身。</p>
       </article>
       {authed && (
-        <div className="mt-16 pt-6 border-t border-stone-100">
+        <div className="mt-16 pt-6 border-t border-stone-100 flex gap-6">
+          <a href="/trash" style={{ fontSize: 12, color: '#aaa', fontFamily: 'monospace' }}>
+            回收站
+          </a>
           <a href="/api/export" download style={{ fontSize: 12, color: '#aaa', fontFamily: 'monospace' }}>
             导出我的所有数据 ↓
           </a>

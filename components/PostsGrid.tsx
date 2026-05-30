@@ -10,7 +10,8 @@ interface Props {
   isOwner: boolean
 }
 
-export default function PostsGrid({ posts, allTags, isOwner }: Props) {
+export default function PostsGrid({ posts: initialPosts, allTags, isOwner }: Props) {
+  const [posts, setPosts] = useState(initialPosts)
   const [activeTag, setActiveTag] = useState('全部')
   const [fading, setFading] = useState(false)
 
@@ -23,7 +24,7 @@ export default function PostsGrid({ posts, allTags, isOwner }: Props) {
 
   const filtered = activeTag === '全部'
     ? posts
-    : posts.filter(p => (p.tags || []).includes(activeTag))
+    : posts.filter((p: Post) => (p.tags || []).includes(activeTag))
 
   return (
     <div>
@@ -54,7 +55,7 @@ export default function PostsGrid({ posts, allTags, isOwner }: Props) {
           </div>
         ) : (
           filtered.map(post => (
-            <PostCard key={post.id} post={post} isOwner={isOwner} />
+            <PostCard key={post.id} post={post} isOwner={isOwner} onDelete={id => setPosts(p => p.filter(x => x.id !== id))} />
           ))
         )}
       </div>

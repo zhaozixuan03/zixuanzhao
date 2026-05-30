@@ -8,6 +8,7 @@ import PublishCelebration from '@/components/PublishCelebration'
 import ShareButtons from '@/components/ShareButtons'
 import EditHistory from '@/components/EditHistory'
 import ViewLogger from '@/components/ViewLogger'
+import DeletePostButton from '@/components/DeletePostButton'
 
 export const revalidate = 0
 
@@ -91,6 +92,7 @@ export default async function PostPage({ params, searchParams }: Props) {
               编辑这篇
             </Link>
           )}
+          {authed && <DeletePostButton postId={post.id} />}
           {post.visibility === 'public' && (
             <ShareButtons
               slug={post.slug}
