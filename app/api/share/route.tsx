@@ -1,8 +1,6 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest } from 'next/server'
-import satori from 'satori'
-import { Resvg } from '@resvg/resvg-js'
 import { supabase } from '@/lib/supabase'
 import React from 'react'
 
@@ -114,6 +112,9 @@ export async function GET(req: NextRequest) {
       </div>
     )
   }
+
+  const satori = (await import('satori')).default
+  const { Resvg } = await import('@resvg/resvg-js')
 
   const svg = await satori(element, { width: 1080, height: hasImage ? 1400 : 1350, fonts })
   const pngBuffer = new Resvg(svg).render().asPng()
