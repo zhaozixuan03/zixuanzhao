@@ -1,5 +1,6 @@
 'use client'
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Post, Photo } from '@/lib/supabase'
 import { formatDate } from '@/lib/utils'
 
@@ -29,6 +30,7 @@ const actionBtn = (danger?: boolean): React.CSSProperties => ({
 })
 
 export default function TrashClient({ initialPosts, initialPhotos }: Props) {
+  const router = useRouter()
   const [tab, setTab] = useState<'posts' | 'photos'>('posts')
   const [posts, setPosts] = useState(initialPosts)
   const [photos, setPhotos] = useState(initialPhotos)
@@ -50,25 +52,22 @@ export default function TrashClient({ initialPosts, initialPhotos }: Props) {
     <div style={{ minHeight: '100vh', background: '#f5f4f0' }}>
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '28px 0 16px' }}>
-          <div style={{ flex: 1 }}>
-            <a href="/" style={{ fontSize: 13, fontFamily: 'sans-serif', color: '#aaa', textDecoration: 'none' }}>← 返回</a>
+        <div style={{ position: 'relative', display: 'flex', alignItems: 'center', padding: '16px 0 12px', borderBottom: '0.5px solid #e8e6e0', marginBottom: 24 }}>
+          <button onClick={() => router.back()} style={{ fontSize: 13, color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'sans-serif' }}>
+            ← 返回
+          </button>
+          <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', fontSize: 16, fontFamily: 'Noto Serif SC, Georgia, serif', color: '#1a1a18', whiteSpace: 'nowrap' }}>
+            回收站
           </div>
-          <div style={{ flex: 0 }}>
-            <span style={{ fontFamily: 'Georgia, serif', fontSize: 17, fontWeight: 400, color: '#1a1a18', whiteSpace: 'nowrap' }}>回收站</span>
-          </div>
-          <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-            <div style={{ display: 'flex', border: '0.5px solid #ddd', borderRadius: 20, overflow: 'hidden' }}>
-              <button onClick={() => setTab('posts')} style={btn(tab === 'posts')}>
-                文字 {posts.length}篇
-              </button>
-              <button onClick={() => setTab('photos')} style={btn(tab === 'photos')}>
-                影像 {photos.length}张
-              </button>
-            </div>
+          <div style={{ marginLeft: 'auto', display: 'flex', border: '0.5px solid #ddd', borderRadius: 16, overflow: 'hidden' }}>
+            <button onClick={() => setTab('posts')} style={{ fontSize: 11, padding: '4px 12px', background: tab === 'posts' ? '#1a1a18' : 'transparent', color: tab === 'posts' ? '#fff' : '#aaa', border: 'none', cursor: 'pointer', fontFamily: 'sans-serif', whiteSpace: 'nowrap' }}>
+              文字 {posts.length}
+            </button>
+            <button onClick={() => setTab('photos')} style={{ fontSize: 11, padding: '4px 12px', background: tab === 'photos' ? '#1a1a18' : 'transparent', color: tab === 'photos' ? '#fff' : '#aaa', border: 'none', cursor: 'pointer', fontFamily: 'sans-serif', whiteSpace: 'nowrap' }}>
+              影像 {photos.length}
+            </button>
           </div>
         </div>
-        <div style={{ borderTop: '0.5px solid #e8e4dc', marginBottom: 32 }} />
       </div>
 
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px 80px' }}>
