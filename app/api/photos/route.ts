@@ -6,6 +6,20 @@ import { log } from '@/lib/log'
 
 const BUCKET = 'images'
 
+export async function GET(req: NextRequest) {
+  if (!isAuthenticatedFromRequest(req)) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
+  }
+  const { data, error } = await supabase
+    .from('photos')
+    .select('*')
+    .is('post_id', null)
+    .is('deleted_at', null)
+    .order('created_at', { ascending: false })
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json(data)
+}
+
 export async function POST(req: NextRequest) {
   if (!isAuthenticatedFromRequest(req)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
@@ -53,10 +67,7 @@ export async function DELETE(req: NextRequest) {
     .single()
   if (!photo) return NextResponse.json({ error: 'not found' }, { status: 404 })
 
-  const filename = (photo.url as string).split('/').pop()!
-  await supabase.storage.from(BUCKET).remove([filename])
-  await supabase.from('photos').delete().eq('id', photo_id)
-
+  await supabase.from('photos').update({ deleted_at: new Date().toISOString() }).eq('id', photo_id)
   await log('photo_deleted', { photo_id, url: photo.url, caption: photo.caption })
 
   return NextResponse.json({ ok: true })

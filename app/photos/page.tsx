@@ -10,6 +10,7 @@ export default async function Photos() {
     .from('photos')
     .select('*')
     .is('post_id', null)
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
 
   return <PhotosPage photos={photos || []} isOwner={authed} />

@@ -20,6 +20,7 @@ export interface Post {
   card_color_mode: string | null
   tags: string[] | null
   edit_history: string[]
+  deleted_at: string | null
   created_at: string
   updated_at: string
 }
@@ -29,5 +30,6 @@ export interface Photo {
   url: string
   caption: string | null
   post_id: string | null
+  deleted_at: string | null
   created_at: string
 }
