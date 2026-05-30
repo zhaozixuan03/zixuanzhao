@@ -5,6 +5,7 @@ import { isAuthenticated } from '@/lib/auth'
 import { formatDateFull } from '@/lib/utils'
 import Nav from '@/components/Nav'
 import PublishCelebration from '@/components/PublishCelebration'
+import ShareButtons from '@/components/ShareButtons'
 
 export const revalidate = 0
 
@@ -71,12 +72,17 @@ export default async function PostPage({ params, searchParams }: Props) {
         />
       </article>
 
-      {/* Actions for owner */}
-      {authed && (
-        <div className="mt-12 pt-6 border-t border-stone-200 flex gap-4">
-          <Link href={`/write?edit=${post.id}`} className="text-[12px] text-stone-400 hover:text-[#3B6D11] font-sans transition-colors">
-            编辑这篇
-          </Link>
+      {/* Actions */}
+      {(authed || post.visibility === 'public') && (
+        <div className="mt-12 pt-6 border-t border-stone-200 flex flex-wrap gap-4 items-center">
+          {authed && (
+            <Link href={`/write?edit=${post.id}`} className="text-[12px] text-stone-400 hover:text-[#3B6D11] font-sans transition-colors">
+              编辑这篇
+            </Link>
+          )}
+          {post.visibility === 'public' && (
+            <ShareButtons slug={post.slug} title={post.title} />
+          )}
         </div>
       )}
 
