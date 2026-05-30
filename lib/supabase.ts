@@ -19,6 +19,7 @@ export interface Post {
   card_text_color: string | null
   card_color_mode: string | null
   tags: string[] | null
+  edit_history: string[]
   created_at: string
   updated_at: string
 }

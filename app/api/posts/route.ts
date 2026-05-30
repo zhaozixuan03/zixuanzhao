@@ -64,6 +64,9 @@ export async function PATCH(req: NextRequest) {
   const content_text = extractPlainText(content || '')
   const image_urls = extractImages(content || '')
 
+  const { data: current } = await supabase.from('posts').select('edit_history').eq('id', id).single()
+  const newHistory = [...(current?.edit_history || []), new Date().toISOString()]
+
   const { data, error } = await supabase.from('posts').update({
     title: title || null,
     content,
@@ -74,6 +77,7 @@ export async function PATCH(req: NextRequest) {
     card_text_color: card_text_color || '#1a1a18',
     card_color_mode: card_color_mode || 'contrast',
     tags: tags || [],
+    edit_history: newHistory,
     updated_at: new Date().toISOString(),
   }).eq('id', id).select().single()
 

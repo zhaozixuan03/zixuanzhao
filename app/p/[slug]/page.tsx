@@ -6,6 +6,7 @@ import { formatDateFull } from '@/lib/utils'
 import Nav from '@/components/Nav'
 import PublishCelebration from '@/components/PublishCelebration'
 import ShareButtons from '@/components/ShareButtons'
+import EditHistory from '@/components/EditHistory'
 
 export const revalidate = 0
 
@@ -71,6 +72,13 @@ export default async function PostPage({ params, searchParams }: Props) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
       </article>
+
+      {/* Edit history — owner only */}
+      {authed && (
+        <div className="mt-12">
+          <EditHistory createdAt={post.created_at} editHistory={post.edit_history || []} />
+        </div>
+      )}
 
       {/* Actions */}
       {(authed || post.visibility === 'public') && (
