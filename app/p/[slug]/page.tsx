@@ -89,6 +89,7 @@ export default async function PostPage({ params, searchParams }: Props) {
               cardTextColor={post.card_text_color || '#1B3A0A'}
               hasImage={(post.image_urls?.length || 0) > 0}
               imageUrl={post.image_urls?.[0]}
+              createdAt={post.created_at}
             />
           )}
         </div>

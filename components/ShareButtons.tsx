@@ -10,15 +10,16 @@ interface Props {
   cardTextColor: string
   hasImage: boolean
   imageUrl?: string
+  createdAt: string
 }
 
-export default function ShareButtons({ slug, title, content, cardColor, cardTextColor, hasImage, imageUrl }: Props) {
+export default function ShareButtons({ slug, title, content, cardColor, cardTextColor, hasImage, imageUrl, createdAt }: Props) {
   const [copying, setCopying] = useState(false)
   const [saving, setSaving] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
   const copyLink = async () => {
-    await navigator.clipboard.writeText(`https://zorazhao.com/p/${slug}`)
+    await navigator.clipboard.writeText(`https://zorazhao.com/p/${slug}​`)
     setCopying(true)
     setTimeout(() => setCopying(false), 1500)
   }
@@ -42,7 +43,14 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
     setSaving(false)
   }
 
-  const excerpt = content.replace(/<[^>]+>/g, '').slice(0, 200)
+  const excerpt = content
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .trim()
+
+  const dateStr = new Date(createdAt).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
+  const year = new Date(createdAt).getFullYear()
 
   return (
     <div>
@@ -52,7 +60,6 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
           ref={cardRef}
           style={{
             width: 1080,
-            minHeight: 1350,
             background: cardColor,
             color: cardTextColor,
             padding: '96px 88px 72px',
@@ -63,7 +70,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
           }}
         >
           <div style={{ fontFamily: 'Courier New, monospace', fontSize: 22, opacity: 0.5, letterSpacing: '0.14em', marginBottom: 56 }}>
-            ZORAZHAO · {new Date().getFullYear()}
+            ZIXUAN ZHAO · {year}
           </div>
 
           {hasImage && imageUrl && (
@@ -71,7 +78,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
               src={imageUrl}
               crossOrigin="anonymous"
               alt=""
-              style={{ width: '100%', height: 560, objectFit: 'cover', borderRadius: 8, marginBottom: 48 }}
+              style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 8, marginBottom: 48 }}
             />
           )}
 
@@ -85,7 +92,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
             <div style={{ width: 32, height: 2, background: cardTextColor, opacity: 0.3, marginBottom: 32 }} />
           )}
 
-          <div style={{ fontSize: hasImage ? 26 : 28, lineHeight: 1.85, opacity: 0.8, flex: 1 }}>
+          <div style={{ fontSize: hasImage ? 26 : 28, lineHeight: 1.85, opacity: 0.8, flex: 1, whiteSpace: 'pre-line' }}>
             {excerpt}
           </div>
 
@@ -94,7 +101,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
               zorazhao.com
             </div>
             <div style={{ fontFamily: 'Courier New, monospace', fontSize: 20, opacity: 0.3 }}>
-              {new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })}
+              {dateStr}
             </div>
           </div>
         </div>
