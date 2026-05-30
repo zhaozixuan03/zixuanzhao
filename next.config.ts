@@ -6,7 +6,6 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '20mb',
     },
   },
-  serverExternalPackages: ['satori', '@resvg/resvg-js'],
 };
 
 export default nextConfig;

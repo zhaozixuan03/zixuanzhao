@@ -81,7 +81,15 @@ export default async function PostPage({ params, searchParams }: Props) {
             </Link>
           )}
           {post.visibility === 'public' && (
-            <ShareButtons slug={post.slug} title={post.title} />
+            <ShareButtons
+              slug={post.slug}
+              title={post.title}
+              content={post.content}
+              cardColor={post.card_color || '#EAF3DE'}
+              cardTextColor={post.card_text_color || '#1B3A0A'}
+              hasImage={(post.image_urls?.length || 0) > 0}
+              imageUrl={post.image_urls?.[0]}
+            />
           )}
         </div>
       )}
