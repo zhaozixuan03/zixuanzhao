@@ -10,10 +10,10 @@ interface Props {
 
 const btn = (active: boolean): React.CSSProperties => ({
   background: active ? '#1a1a18' : 'transparent',
-  color: active ? 'white' : '#999',
-  padding: '4px 14px',
+  color: active ? 'white' : '#aaa',
+  padding: '5px 14px',
   fontSize: 11,
-  fontFamily: 'monospace',
+  fontFamily: 'sans-serif',
   border: 'none',
   cursor: 'pointer',
 })
@@ -50,15 +50,15 @@ export default function TrashClient({ initialPosts, initialPhotos }: Props) {
     <div style={{ minHeight: '100vh', background: '#f5f4f0' }}>
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 24px' }}>
         {/* Header */}
-        <div style={{ display: 'flex', alignItems: 'center', padding: '28px 0 16px', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', padding: '28px 0 16px' }}>
           <div style={{ flex: 1 }}>
-            <a href="/" style={{ fontSize: 12, fontFamily: 'sans-serif', color: '#999', textDecoration: 'none' }}>← 返回</a>
+            <a href="/" style={{ fontSize: 13, fontFamily: 'sans-serif', color: '#aaa', textDecoration: 'none' }}>← 返回</a>
           </div>
           <div style={{ flex: 0 }}>
-            <span style={{ fontFamily: "'Noto Serif SC', Georgia, serif", fontSize: 17, fontWeight: 400, color: '#1a1a18', whiteSpace: 'nowrap' }}>回收站</span>
+            <span style={{ fontFamily: 'Georgia, serif', fontSize: 17, fontWeight: 400, color: '#1a1a18', whiteSpace: 'nowrap' }}>回收站</span>
           </div>
           <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end' }}>
-            <div style={{ display: 'flex', border: '0.5px solid #ccc', borderRadius: 20, overflow: 'hidden' }}>
+            <div style={{ display: 'flex', border: '0.5px solid #ddd', borderRadius: 20, overflow: 'hidden' }}>
               <button onClick={() => setTab('posts')} style={btn(tab === 'posts')}>
                 文字 {posts.length}篇
               </button>

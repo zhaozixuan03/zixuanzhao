@@ -58,12 +58,7 @@ export default async function Home() {
         <MasonryGallery photos={photos} isOwner={authed} />
         <footer className="pt-6 border-t border-stone-200 flex justify-between items-center">
           <span className="text-[11px] text-stone-400 font-sans">zorazhao.com</span>
-          <div className="flex items-center gap-4">
-            <span className="text-[11px] text-stone-400 font-serif italic">带着这些感恩，动身。</span>
-            {authed && (
-              <a href="/trash" className="text-[11px] text-stone-400 font-mono hover:text-stone-600 transition-colors">回收站</a>
-            )}
-          </div>
+          <span className="text-[11px] text-stone-400 font-serif italic">带着这些感恩，动身。</span>
         </footer>
       </div>
     </div>
