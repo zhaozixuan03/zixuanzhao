@@ -113,6 +113,10 @@ function WriteForm() {
       .then(r => setAuthed(r.ok))
       .catch(() => setAuthed(false))
 
+    if (!editId) {
+      fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event_type: 'write_opened', payload: {} }) })
+    }
+
     fetch('/api/posts')
       .then(r => {
         if (editId) {

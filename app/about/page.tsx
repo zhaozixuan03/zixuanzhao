@@ -20,6 +20,13 @@ export default async function About() {
         </p>
         <p className="text-stone-400">带着这些感恩，动身。</p>
       </article>
+      {authed && (
+        <div className="mt-16 pt-6 border-t border-stone-100">
+          <a href="/api/export" download style={{ fontSize: 12, color: '#aaa', fontFamily: 'monospace' }}>
+            导出我的所有数据 ↓
+          </a>
+        </div>
+      )}
     </main>
   )
 }

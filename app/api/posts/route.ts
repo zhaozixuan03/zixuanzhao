@@ -3,12 +3,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { supabase, Visibility } from '@/lib/supabase'
 import { isAuthenticatedFromRequest } from '@/lib/auth'
 import { generateSlug, extractPlainText, extractImages, countWords } from '@/lib/utils'
+import { log } from '@/lib/log'
 import { v4 as uuidv4 } from 'uuid'
 
-// GET /api/posts - list posts
+// GET /api/posts - list posts (excludes soft-deleted)
 export async function GET(req: NextRequest) {
   const authed = isAuthenticatedFromRequest(req)
-  let query = supabase.from('posts').select('*').order('created_at', { ascending: false })
+  let query = supabase.from('posts').select('*').is('deleted_at', null).order('created_at', { ascending: false })
 
   if (!authed) {
     query = query.in('visibility', ['public'])
@@ -51,6 +52,16 @@ export async function POST(req: NextRequest) {
     await supabase.from('photos').insert(image_urls.map((url: string) => ({ url, post_id: id })))
   }
 
+  await log('post_created', {
+    post_id: data.id,
+    title: data.title,
+    word_count: countWords(content_text),
+    tags,
+    visibility,
+    card_color,
+    content_preview: content_text.slice(0, 100),
+  })
+
   return NextResponse.json(data)
 }
 
@@ -64,6 +75,7 @@ export async function PATCH(req: NextRequest) {
   const content_text = extractPlainText(content || '')
   const image_urls = extractImages(content || '')
 
+  const { data: prev } = await supabase.from('posts').select('*').eq('id', id).single()
   const { data: current } = await supabase.from('posts').select('edit_history').eq('id', id).single()
   const newHistory = [...(current?.edit_history || []), new Date().toISOString()]
 
@@ -88,18 +100,44 @@ export async function PATCH(req: NextRequest) {
     await supabase.from('photos').insert(image_urls.map((url: string) => ({ url, post_id: id })))
   }
 
+  await log('post_updated', {
+    post_id: id,
+    title: data.title,
+    word_count: countWords(content_text),
+    prev_word_count: countWords(prev?.content_text || ''),
+    tags,
+    visibility,
+    prev_visibility: prev?.visibility,
+    changed_fields: [
+      ...(title !== prev?.title ? ['title'] : []),
+      ...(content !== prev?.content ? ['content'] : []),
+      ...(visibility !== prev?.visibility ? ['visibility'] : []),
+      ...(tags?.join() !== prev?.tags?.join() ? ['tags'] : []),
+    ],
+    content_preview: content_text.slice(0, 100),
+  })
+
   return NextResponse.json(data)
 }
 
-// DELETE /api/posts
+// DELETE /api/posts - soft delete
 export async function DELETE(req: NextRequest) {
   if (!isAuthenticatedFromRequest(req)) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
   }
 
   const { id } = await req.json()
-  await supabase.from('photos').delete().eq('post_id', id)
-  const { error } = await supabase.from('posts').delete().eq('id', id)
+  const { data: post } = await supabase.from('posts').select('*').eq('id', id).single()
+
+  await log('post_deleted', {
+    post_id: id,
+    title: post?.title,
+    word_count: countWords(post?.content_text || ''),
+    tags: post?.tags,
+    content_preview: post?.content_text?.slice(0, 100),
+  })
+
+  const { error } = await supabase.from('posts').update({ deleted_at: new Date().toISOString() }).eq('id', id)
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ ok: true })
 }

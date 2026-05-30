@@ -18,10 +18,14 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
   const [saving, setSaving] = useState(false)
   const cardRef = useRef<HTMLDivElement>(null)
 
+  const logShare = (share_type: string) =>
+    fetch('/api/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ event_type: 'post_shared', payload: { post_id: slug, share_type } }) })
+
   const copyLink = async () => {
     await navigator.clipboard.writeText(`https://zorazhao.com/p/${slug}​`)
     setCopying(true)
     setTimeout(() => setCopying(false), 1500)
+    logShare('link')
   }
 
   const saveImage = async () => {
@@ -37,6 +41,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
       link.download = `${title || slug}.png`
       link.href = canvas.toDataURL('image/png')
       link.click()
+      logShare('image')
     } catch (e) {
       console.error(e)
     }
