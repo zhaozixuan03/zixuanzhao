@@ -7,6 +7,7 @@ import Nav from '@/components/Nav'
 import PublishCelebration from '@/components/PublishCelebration'
 import ShareButtons from '@/components/ShareButtons'
 import EditHistory from '@/components/EditHistory'
+import ViewLogger from '@/components/ViewLogger'
 
 export const revalidate = 0
 
@@ -72,6 +73,8 @@ export default async function PostPage({ params, searchParams }: Props) {
           dangerouslySetInnerHTML={{ __html: post.content }}
         />
       </article>
+
+      {authed && <ViewLogger postId={post.id} title={post.title} />}
 
       {/* Edit history — owner only */}
       {authed && (

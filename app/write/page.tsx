@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Visibility } from '@/lib/supabase'
@@ -101,6 +101,7 @@ function WriteForm() {
   const [customTextColor, setCustomTextColor] = useState('#1a1a18')
   const [tags, setTags] = useState<string[]>([])
   const [showVisMenu, setShowVisMenu] = useState(false)
+  const openedAt = useRef(Date.now())
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
@@ -152,7 +153,8 @@ function WriteForm() {
 
   const save = async () => {
     setSaving(true)
-    const payload = { title, content, visibility, card_color: cardColor, card_text_color: cardTextColor, card_color_mode: colorMode, tags }
+    const writing_seconds = Math.round((Date.now() - openedAt.current) / 1000)
+    const payload = { title, content, visibility, card_color: cardColor, card_text_color: cardTextColor, card_color_mode: colorMode, tags, writing_seconds }
     const method = editId ? 'PATCH' : 'POST'
     const body = editId ? { id: editId, ...payload } : payload
 

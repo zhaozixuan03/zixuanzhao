@@ -1,12 +1,17 @@
 import { Post } from './supabase'
 
 export function generateSlug(title: string | null, id: string): string {
-  if (!title) return id.slice(0, 8)
-  return title
+  const suffix = id.slice(0, 6)
+  if (!title) return suffix
+  const cleaned = title
     .toLowerCase()
-    .replace(/[^\w\u4e00-\u9fa5\s-]/g, '')
+    .replace(/[\u4e00-\u9fa5]/g, '')
+    .replace(/[^\w\s-]/g, '')
     .replace(/\s+/g, '-')
-    .slice(0, 60) + '-' + id.slice(0, 6)
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 40)
+  return cleaned ? `${cleaned}-${suffix}` : suffix
 }
 
 export function extractPlainText(html: string): string {
