@@ -49,15 +49,10 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
       await document.fonts.ready
 
       const card = cardRef.current
-      const originalStyle = card.style.cssText
-      card.style.position = 'absolute'
-      card.style.left = '0'
-      card.style.top = '0'
-      card.style.zIndex = '-9999'
-      card.style.visibility = 'visible'
+      card.style.opacity = '1'
+      card.style.width = '1080px'
       card.style.maxHeight = 'none'
       card.style.overflow = 'visible'
-      card.style.width = '1080px'
 
       await new Promise(r => setTimeout(r, 200))
 
@@ -78,19 +73,24 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
         const c = await html2canvas(card, {
           scale: 2,
           useCORS: true,
-          allowTaint: false,
+          allowTaint: true,
           backgroundColor: cardColor,
           width,
           windowWidth: width,
           height: currentHeight,
           y: yOffset,
-          scrollX: 0,
+          scrollX: -card.getBoundingClientRect().left,
           scrollY: 0,
+          ignoreElements: el => {
+            const src = el.getAttribute?.('src') || ''
+            return src.startsWith('http') && !src.includes('supabase')
+          },
         })
         canvases.push(c)
       }
 
-      card.style.cssText = originalStyle
+      card.style.opacity = '0'
+      card.style.width = '1080px'
 
       const finalCanvas = document.createElement('canvas')
       finalCanvas.width = width * 2
@@ -104,7 +104,16 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
         yPos += c.height
       }
 
-      const dataUrl = finalCanvas.toDataURL('image/png')
+      let dataUrl = ''
+      try {
+        dataUrl = finalCanvas.toDataURL('image/png')
+      } catch {
+        try {
+          dataUrl = finalCanvas.toDataURL('image/jpeg', 0.9)
+        } catch {
+          throw new Error('无法导出图片，可能有跨域内容')
+        }
+      }
       if (!dataUrl || dataUrl === 'data:,') throw new Error('canvas 输出为空')
 
       const link = document.createElement('a')
@@ -146,7 +155,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
           position: 'absolute',
           left: '-9999px',
           top: 0,
-          visibility: 'visible',
+          opacity: 0,
           pointerEvents: 'none',
           width: 1080,
           background: cardColor,
