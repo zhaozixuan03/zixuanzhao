@@ -5,10 +5,9 @@ import { isAuthenticated } from '@/lib/auth'
 import { formatDateFull } from '@/lib/utils'
 import Nav from '@/components/Nav'
 import PublishCelebration from '@/components/PublishCelebration'
-import ShareButtons from '@/components/ShareButtons'
+import PostActions from '@/components/PostActions'
 import EditHistory from '@/components/EditHistory'
 import ViewLogger from '@/components/ViewLogger'
-import DeletePostButton from '@/components/DeletePostButton'
 
 export const revalidate = 0
 
@@ -43,8 +42,6 @@ export default async function PostPage({ params, searchParams }: Props) {
   if (!post) notFound()
   if (post.visibility === 'private' && !authed) notFound()
 
-  const showActions = authed || post.visibility === 'public'
-
   return (
     <>
       <PublishCelebration cardColor={post.card_color} isNew={isNew} />
@@ -69,36 +66,19 @@ export default async function PostPage({ params, searchParams }: Props) {
               </h1>
             )}
 
-            {/* Actions: inline between title and content */}
-            {showActions && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginBottom: 20, paddingBottom: 16, borderBottom: '0.5px solid #e8e6e0' }}>
-                {authed && (
-                  <>
-                    <a
-                      href={`/write?edit=${post.id}`}
-                      style={{ fontSize: 12, color: '#aaa', fontFamily: 'monospace', textDecoration: 'none' }}
-                      onMouseEnter={e => (e.currentTarget.style.color = '#3B6D11')}
-                      onMouseLeave={e => (e.currentTarget.style.color = '#aaa')}
-                    >
-                      编辑这篇
-                    </a>
-                    <DeletePostButton postId={post.id} compact />
-                  </>
-                )}
-                {post.visibility === 'public' && (
-                  <ShareButtons
-                    slug={post.slug}
-                    title={post.title}
-                    content={post.content}
-                    cardColor={post.card_color || '#EAF3DE'}
-                    cardTextColor={post.card_text_color || '#1B3A0A'}
-                    hasImage={(post.image_urls?.length || 0) > 0}
-                    imageUrl={post.image_urls?.[0]}
-                    createdAt={post.created_at}
-                  />
-                )}
-              </div>
-            )}
+            <PostActions
+              postId={post.id}
+              slug={post.slug}
+              title={post.title}
+              content={post.content}
+              cardColor={post.card_color}
+              cardTextColor={post.card_text_color}
+              visibility={post.visibility}
+              isOwner={authed}
+              hasImage={(post.image_urls?.length || 0) > 0}
+              imageUrl={post.image_urls?.[0]}
+              createdAt={post.created_at}
+            />
           </div>
 
           {/* Content */}
