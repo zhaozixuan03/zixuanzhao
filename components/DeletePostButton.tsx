@@ -27,8 +27,8 @@ export default function DeletePostButton({ postId, compact }: Props) {
       <button
         onClick={handleDelete}
         disabled={loading}
-        style={{ fontSize: 11, fontFamily: 'monospace', color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: loading ? 0.4 : 1 }}
-        onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.color = '#e05252' }}
+        style={{ fontSize: 12, fontFamily: 'monospace', color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: loading ? 0.4 : 1 }}
+        onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.color = '#ef4444' }}
         onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#aaa' }}
       >
         {loading ? '删除中…' : '删除这篇'}

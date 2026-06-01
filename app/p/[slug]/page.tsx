@@ -71,20 +71,19 @@ export default async function PostPage({ params, searchParams }: Props) {
 
             {/* Actions: inline between title and content */}
             {showActions && (
-              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0, marginBottom: 20, paddingBottom: 16, borderBottom: '0.5px solid #e8e6e0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginBottom: 20, paddingBottom: 16, borderBottom: '0.5px solid #e8e6e0' }}>
                 {authed && (
                   <>
-                    <Link href={`/write?edit=${post.id}`} style={{ fontSize: 11, fontFamily: 'monospace', color: '#aaa', textDecoration: 'none' }}
-                      onMouseEnter={undefined}
+                    <a
+                      href={`/write?edit=${post.id}`}
+                      style={{ fontSize: 12, color: '#aaa', fontFamily: 'monospace', textDecoration: 'none' }}
+                      onMouseEnter={e => (e.currentTarget.style.color = '#3B6D11')}
+                      onMouseLeave={e => (e.currentTarget.style.color = '#aaa')}
                     >
                       编辑这篇
-                    </Link>
-                    <span style={{ color: '#ddd', fontSize: 11, margin: '0 8px' }}>·</span>
+                    </a>
                     <DeletePostButton postId={post.id} compact />
                   </>
-                )}
-                {authed && post.visibility === 'public' && (
-                  <span style={{ color: '#ddd', fontSize: 11, margin: '0 8px' }}>·</span>
                 )}
                 {post.visibility === 'public' && (
                   <ShareButtons
