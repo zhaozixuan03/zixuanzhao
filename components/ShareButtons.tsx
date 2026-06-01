@@ -33,12 +33,6 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
     setSaving(true)
     try {
       await document.fonts.ready
-      cardRef.current.style.visibility = 'visible'
-      cardRef.current.style.position = 'fixed'
-      cardRef.current.style.left = '0'
-      cardRef.current.style.top = '0'
-      cardRef.current.style.zIndex = '-1'
-      await new Promise(r => setTimeout(r, 100))
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
@@ -46,26 +40,18 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
         backgroundColor: cardColor,
         width: 1080,
         windowWidth: 1080,
+        scrollX: 0,
+        scrollY: 0,
         logging: false,
       })
-      cardRef.current.style.visibility = 'hidden'
-      cardRef.current.style.position = 'absolute'
-      cardRef.current.style.left = '-9999px'
-      cardRef.current.style.zIndex = ''
       const link = document.createElement('a')
       link.download = `${title || 'zorazhao'}.png`
       link.href = canvas.toDataURL('image/png')
       link.click()
       logShare('image')
     } catch (e) {
-      console.error(e)
-      if (cardRef.current) {
-        cardRef.current.style.visibility = 'hidden'
-        cardRef.current.style.position = 'absolute'
-        cardRef.current.style.left = '-9999px'
-        cardRef.current.style.zIndex = ''
-      }
-      alert('生成失败，请重试')
+      console.error('生成失败详情:', e)
+      alert('生成失败：' + String(e))
     }
     setSaving(false)
   }
@@ -90,14 +76,15 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
 
   return (
     <>
-      {/* 隐藏分享卡片，html2canvas 截图时临时显示 */}
+      {/* 分享卡片：始终在屏幕外，html2canvas 直接截图 */}
       <div
         ref={cardRef}
         style={{
           position: 'absolute',
           left: '-9999px',
           top: 0,
-          visibility: 'hidden',
+          visibility: 'visible',
+          pointerEvents: 'none',
           width: 1080,
           background: cardColor,
           color: cardTextColor,
