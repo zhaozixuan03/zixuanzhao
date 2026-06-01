@@ -50,16 +50,23 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
 
       const card = cardRef.current
       const originalStyle = card.style.cssText
-      card.style.position = 'fixed'
-      card.style.left = '-9999px'
+      card.style.position = 'absolute'
+      card.style.left = '0'
       card.style.top = '0'
+      card.style.zIndex = '-9999'
       card.style.visibility = 'visible'
       card.style.maxHeight = 'none'
       card.style.overflow = 'visible'
+      card.style.width = '1080px'
 
       await new Promise(r => setTimeout(r, 200))
 
-      const totalHeight = card.scrollHeight
+      let totalHeight = card.scrollHeight
+      if (totalHeight === 0) totalHeight = card.getBoundingClientRect().height
+      if (totalHeight === 0) totalHeight = card.offsetHeight
+      if (totalHeight === 0) throw new Error('无法获取卡片高度，请重试')
+
+      console.log('卡片高度:', totalHeight, '宽度:', card.scrollWidth)
       const width = 1080
       const segmentHeight = 4096
       const segments = Math.ceil(totalHeight / segmentHeight)
