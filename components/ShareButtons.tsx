@@ -32,17 +32,24 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
     if (!cardRef.current) return
     setSaving(true)
     try {
-      const font = new FontFace(
-        'Noto Serif SC',
-        'url(https://fonts.gstatic.com/s/notoserifsc/v22/H4c8BXePl9DZ0Xe7gG9cyOj7mm63SzZBEtERe7U.woff2)'
-      )
-      await font.load()
-      document.fonts.add(font)
+      try {
+        const font = new FontFace(
+          'Noto Serif SC',
+          'url(https://fonts.gstatic.com/s/notoserifsc/v22/H4c8BXePl9DZ0Xe7gG9cyOj7mm63SzZBEtERe7U.woff2)'
+        )
+        await Promise.race([
+          font.load(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
+        ])
+        document.fonts.add(font)
+      } catch (fontErr) {
+        console.warn('字体加载失败，使用系统字体:', fontErr)
+      }
+
       await document.fonts.ready
 
       const card = cardRef.current
       const originalStyle = card.style.cssText
-
       card.style.position = 'fixed'
       card.style.left = '-9999px'
       card.style.top = '0'
@@ -72,7 +79,6 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
           y: yOffset,
           scrollX: 0,
           scrollY: 0,
-          logging: false,
         })
         canvases.push(c)
       }
