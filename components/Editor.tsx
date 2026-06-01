@@ -122,7 +122,10 @@ export default function Editor({ content = '', onChange, placeholder = '写点�
       </div>
 
       {/* Editor area */}
-      <div className="px-5 py-4 min-h-[280px] bg-white">
+      <div
+        className="px-5 py-4 bg-white overflow-y-auto"
+        style={{ height: 'calc(100vh - 320px)', minHeight: 300 }}
+      >
         <EditorContent editor={editor} />
       </div>
     </div>

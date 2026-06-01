@@ -49,9 +49,19 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
   }
 
   const excerpt = content
-    .replace(/<\/p>/gi, '\n')
+    .replace(/<h[1-6][^>]*>(.*?)<\/h[1-6]>/gi, '$1\n')
+    .replace(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/gi, '$1')
+    .replace(/<li[^>]*>(.*?)<\/li>/gi, '· $1\n')
     .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<\/p>/gi, '\n')
+    .replace(/<\/div>/gi, '\n')
     .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\n{3,}/g, '\n\n')
     .trim()
 
   const dateStr = new Date(createdAt).toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit' })
