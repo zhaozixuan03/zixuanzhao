@@ -13,6 +13,10 @@ interface Props {
   createdAt: string
 }
 
+const SERIF = "'Noto Serif SC', Georgia, 'Times New Roman', serif"
+const MAX_AREA = 16_000_000
+const MAX_DIM = 8192
+
 export default function ShareButtons({ slug, title, content, cardColor, cardTextColor, hasImage, imageUrl, createdAt }: Props) {
   const [copying, setCopying] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -32,28 +36,19 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
     if (!cardRef.current) return
     setSaving(true)
     try {
-      try {
-        const font = new FontFace(
-          'Noto Serif SC',
-          'url(https://fonts.gstatic.com/s/notoserifsc/v22/H4c8BXePl9DZ0Xe7gG9cyOj7mm63SzZBEtERe7U.woff2)'
-        )
-        await Promise.race([
-          font.load(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000)),
-        ])
-        document.fonts.add(font)
-      } catch (fontErr) {
-        console.warn('字体加载失败，使用系统字体:', fontErr)
-      }
-
-      await document.fonts.ready
-
       const card = cardRef.current
       card.style.opacity = '1'
       card.style.width = '1080px'
       card.style.maxHeight = 'none'
       card.style.overflow = 'visible'
 
+      // Wait for fonts used in the actual content
+      const sampleText = (title || '') + ' ' + card.innerText.slice(0, 200)
+      await Promise.all([
+        document.fonts.load(`400 40px 'Noto Serif SC'`, sampleText),
+        document.fonts.load(`500 40px 'Noto Serif SC'`, sampleText),
+      ]).catch(() => {})
+      await document.fonts.ready
       await new Promise(r => setTimeout(r, 200))
 
       let totalHeight = card.scrollHeight
@@ -61,60 +56,48 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
       if (totalHeight === 0) totalHeight = card.offsetHeight
       if (totalHeight === 0) throw new Error('无法获取卡片高度，请重试')
 
-      console.log('卡片高度:', totalHeight, '宽度:', card.scrollWidth)
       const width = 1080
-      const segmentHeight = 4096
-      const segments = Math.ceil(totalHeight / segmentHeight)
-      const canvases: HTMLCanvasElement[] = []
+      const scale = Math.max(
+        0.5,
+        Math.min(
+          2,
+          Math.sqrt(MAX_AREA / (width * totalHeight)),
+          MAX_DIM / totalHeight,
+          MAX_DIM / width
+        )
+      )
 
-      for (let i = 0; i < segments; i++) {
-        const yOffset = i * segmentHeight
-        const currentHeight = Math.min(segmentHeight, totalHeight - yOffset)
-        const c = await html2canvas(card, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: cardColor,
-          width,
-          windowWidth: width,
-          height: currentHeight,
-          y: yOffset,
-          scrollX: -card.getBoundingClientRect().left,
-          scrollY: 0,
-          ignoreElements: el => {
-            const src = el.getAttribute?.('src') || ''
-            return src.startsWith('http') && !src.includes('supabase')
-          },
-        })
-        canvases.push(c)
-      }
+      console.log('卡片高度:', totalHeight, '缩放比:', scale.toFixed(2))
+
+      const canvas = await html2canvas(card, {
+        scale,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: cardColor,
+        width,
+        windowWidth: width,
+        height: totalHeight,
+        scrollX: -card.getBoundingClientRect().left,
+        scrollY: 0,
+        ignoreElements: el => {
+          const src = el.getAttribute?.('src') || ''
+          return src.startsWith('http') && !src.includes('supabase')
+        },
+      })
 
       card.style.opacity = '0'
-      card.style.width = '1080px'
-
-      const finalCanvas = document.createElement('canvas')
-      finalCanvas.width = width * 2
-      finalCanvas.height = totalHeight * 2
-      const ctx = finalCanvas.getContext('2d')!
-      ctx.fillStyle = cardColor
-      ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height)
-      let yPos = 0
-      for (const c of canvases) {
-        ctx.drawImage(c, 0, yPos)
-        yPos += c.height
-      }
 
       let dataUrl = ''
       try {
-        dataUrl = finalCanvas.toDataURL('image/png')
+        dataUrl = canvas.toDataURL('image/png')
       } catch {
         try {
-          dataUrl = finalCanvas.toDataURL('image/jpeg', 0.9)
+          dataUrl = canvas.toDataURL('image/jpeg', 0.9)
         } catch {
           throw new Error('无法导出图片，可能有跨域内容')
         }
       }
-      if (!dataUrl || dataUrl === 'data:,') throw new Error('canvas 输出为空')
+      if (!dataUrl || dataUrl === 'data:,') throw new Error('内容过长，导出失败，请尝试缩短或分段保存')
 
       const link = document.createElement('a')
       link.download = `${title || 'zorazhao'}.png`
@@ -122,6 +105,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
       link.click()
       logShare('image')
     } catch (e) {
+      if (cardRef.current) cardRef.current.style.opacity = '0'
       console.error('生成失败:', e)
       alert('生成失败：' + String(e))
     }
@@ -131,6 +115,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
   const processedContent = content
     .replace(/<blockquote>/gi, '<div style="border-left:3px solid currentColor;padding-left:20px;opacity:0.7;margin:16px 0;">')
     .replace(/<\/blockquote>/gi, '</div>')
+    .replace(/<hr\s*\/?>/gi, '<div style="height:1px;background:currentColor;opacity:0.15;margin:24px 0;"></div>')
     .replace(/<strong>/gi, '<span style="font-weight:600;">')
     .replace(/<\/strong>/gi, '</span>')
     .replace(/<em>/gi, '<span style="font-style:italic;">')
@@ -148,7 +133,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
 
   return (
     <>
-      {/* 分享卡片：屏幕外渲染，截图时临时显示 */}
+      {/* 分享卡片：屏幕外渲染，截图时临时设 opacity:1 */}
       <div
         ref={cardRef}
         style={{
@@ -163,7 +148,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
           padding: '96px 88px 72px',
           display: 'flex',
           flexDirection: 'column',
-          fontFamily: 'Georgia, serif',
+          fontFamily: SERIF,
           boxSizing: 'border-box',
         }}
       >
@@ -182,7 +167,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
         )}
 
         {title && (
-          <div style={{ fontSize: hasImage ? 40 : 56, fontWeight: 400, lineHeight: 1.35, letterSpacing: '-0.01em', marginBottom: 32 }}>
+          <div style={{ fontFamily: SERIF, fontSize: hasImage ? 40 : 56, fontWeight: 400, lineHeight: 1.35, letterSpacing: '-0.01em', marginBottom: 32 }}>
             {title}
           </div>
         )}
@@ -193,7 +178,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
 
         <div
           dangerouslySetInnerHTML={{ __html: processedContent }}
-          style={{ fontSize: 28, lineHeight: 1.85, opacity: 0.82, fontFamily: 'Georgia, serif' }}
+          style={{ fontFamily: SERIF, fontSize: 28, lineHeight: 1.85, opacity: 0.82 }}
         />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 64, paddingTop: 32, borderTop: `1px solid ${cardTextColor}20` }}>
