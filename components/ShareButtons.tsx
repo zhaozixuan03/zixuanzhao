@@ -35,7 +35,12 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
       const canvas = await html2canvas(cardRef.current, {
         scale: 2,
         useCORS: true,
+        allowTaint: true,
         backgroundColor: cardColor,
+        logging: false,
+        onclone: (_doc: Document, el: HTMLElement) => {
+          el.style.visibility = 'visible'
+        },
       })
       const link = document.createElement('a')
       link.download = `${title || slug}.png`
@@ -70,9 +75,10 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
   return (
     <div>
       {/* 隐藏分享卡片，用于 html2canvas 截图 */}
-      <div style={{ position: 'fixed', left: '-9999px', top: 0 }}>
+      <div style={{ position: 'absolute', left: '-9999px', top: 0, visibility: 'hidden' }}>
         <div
           ref={cardRef}
+          data-share-card
           style={{
             width: 1080,
             background: cardColor,
@@ -94,6 +100,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
               crossOrigin="anonymous"
               alt=""
               style={{ width: '100%', height: 'auto', display: 'block', borderRadius: 8, marginBottom: 48 }}
+              onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
             />
           )}
 
@@ -124,13 +131,18 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
 
       <button
         onClick={copyLink}
-        style={{ fontSize: 12, padding: '6px 14px', border: '0.5px solid #ddd', borderRadius: 20, cursor: 'pointer', background: 'transparent', color: '#999', fontFamily: 'sans-serif', marginRight: 8 }}
+        style={{ fontSize: 11, fontFamily: 'monospace', color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+        onMouseEnter={e => (e.currentTarget.style.color = '#555')}
+        onMouseLeave={e => (e.currentTarget.style.color = '#aaa')}
       >
         {copying ? '已复制 ✓' : '复制链接'}
       </button>
+      <span style={{ color: '#ddd', fontSize: 11, margin: '0 8px' }}>·</span>
       <button
         onClick={saveImage}
-        style={{ fontSize: 12, padding: '6px 14px', border: '0.5px solid #ddd', borderRadius: 20, cursor: 'pointer', background: 'transparent', color: '#999', fontFamily: 'sans-serif' }}
+        style={{ fontSize: 11, fontFamily: 'monospace', color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+        onMouseEnter={e => (e.currentTarget.style.color = '#555')}
+        onMouseLeave={e => (e.currentTarget.style.color = '#aaa')}
       >
         {saving ? '生成中…' : '保存为图片'}
       </button>

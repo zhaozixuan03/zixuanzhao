@@ -2,7 +2,12 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function DeletePostButton({ postId }: { postId: string }) {
+interface Props {
+  postId: string
+  compact?: boolean
+}
+
+export default function DeletePostButton({ postId, compact }: Props) {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
@@ -15,6 +20,20 @@ export default function DeletePostButton({ postId }: { postId: string }) {
       body: JSON.stringify({ id: postId }),
     })
     router.push('/')
+  }
+
+  if (compact) {
+    return (
+      <button
+        onClick={handleDelete}
+        disabled={loading}
+        style={{ fontSize: 11, fontFamily: 'monospace', color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0, opacity: loading ? 0.4 : 1 }}
+        onMouseEnter={e => { if (!loading) (e.currentTarget as HTMLButtonElement).style.color = '#e05252' }}
+        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#aaa' }}
+      >
+        {loading ? '删除中…' : '删除这篇'}
+      </button>
+    )
   }
 
   return (
