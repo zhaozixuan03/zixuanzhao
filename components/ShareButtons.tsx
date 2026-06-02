@@ -1,7 +1,10 @@
 'use client'
-import { useState, useRef } from 'react'
+import { useState } from 'react'
+import { createRoot } from 'react-dom/client'
+import { flushSync } from 'react-dom'
 import html2canvas from 'html2canvas'
-import ShareCard from '@/components/ShareCard'
+import ShareCardPage from '@/components/ShareCardPage'
+import { processContent, paginateContent } from '@/lib/paginate'
 
 interface Props {
   slug: string
@@ -22,7 +25,6 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
   const [copying, setCopying] = useState(false)
   const [saving, setSaving] = useState(false)
   const [tiles, setTiles] = useState<{ url: string; blob: Blob }[]>([])
-  const cardRef = useRef<HTMLDivElement>(null)
 
   const logShare = (share_type: string) =>
     fetch('/api/log', {
@@ -44,54 +46,79 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
   }
 
   const saveImage = async () => {
-    const card = cardRef.current
-    if (!card) return
     setSaving(true)
     try {
-      const sample = (title || '') + ' ' + card.innerText.slice(0, 200)
+      // Warm up fonts with actual content before measuring
+      const sample = (title || 'ZIXUAN ZHAO') + ' 的'
       await Promise.all([
         document.fonts.load(`400 40px 'Noto Serif SC'`, sample),
         document.fonts.load(`500 40px 'Noto Serif SC'`, sample),
       ]).catch(() => {})
       await document.fonts.ready
-      await new Promise(r => setTimeout(r, 200))
 
-      const width = 1080
-      const totalHeight = card.scrollHeight || card.getBoundingClientRect().height || card.offsetHeight
-      if (!totalHeight) throw new Error('无法获取卡片高度，请重试')
+      const processed = processContent(content)
+      const pageHtmls = paginateContent(processed)
+      const count = pageHtmls.length
 
       const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1
-      const MAX_DIM = isMobile ? 4096 : 16384
       const scale = isMobile ? 2 : 3
 
-      const tileCssH = Math.floor(MAX_DIM / scale)
-      const count = Math.max(1, Math.ceil(totalHeight / tileCssH))
-
       const out: { url: string; blob: Blob }[] = []
+
       for (let i = 0; i < count; i++) {
-        const y = i * tileCssH
-        const h = Math.min(tileCssH, totalHeight - y)
-        const canvas = await html2canvas(card, {
+        const container = document.createElement('div')
+        container.style.cssText = 'position:absolute;left:-9999px;top:0;'
+        document.body.appendChild(container)
+
+        const root = createRoot(container)
+        // flushSync renders the component tree to DOM synchronously
+        flushSync(() => {
+          root.render(
+            <ShareCardPage
+              pageHtml={pageHtmls[i]}
+              title={title}
+              cardColor={cardColor}
+              cardTextColor={cardTextColor}
+              hasImage={i === 0 && hasImage}
+              imageUrl={i === 0 ? imageUrl : undefined}
+              createdAt={createdAt}
+              pageIndex={i}
+              pageCount={count}
+            />
+          )
+        })
+
+        // Extra settle time for images and layout
+        await new Promise(r => setTimeout(r, 200))
+
+        const el = container.querySelector('#card') as HTMLElement | null
+        if (!el) {
+          root.unmount()
+          document.body.removeChild(container)
+          throw new Error(`第 ${i + 1} 页未找到 #card 元素`)
+        }
+
+        const canvas = await html2canvas(el, {
           scale,
           useCORS: true,
           allowTaint: true,
           backgroundColor: cardColor,
-          width,
-          windowWidth: width,
-          windowHeight: totalHeight,
-          height: h,
-          y,
-          scrollX: -card.getBoundingClientRect().left,
+          scrollX: -el.getBoundingClientRect().left,
           scrollY: 0,
-          ignoreElements: el => {
-            const src = el.getAttribute?.('src') || ''
+          ignoreElements: node => {
+            const src = node.getAttribute?.('src') || ''
             return src.startsWith('http') && !src.includes('supabase')
           },
         })
+
+        root.unmount()
+        document.body.removeChild(container)
+
         const blob = await getBlob(canvas)
-        if (!blob) throw new Error('导出失败，请重试')
+        if (!blob) throw new Error(`第 ${i + 1} 页导出失败，请重试`)
         out.push({ url: URL.createObjectURL(blob), blob })
       }
+
       setTiles(out)
       logShare('image')
     } catch (e) {
@@ -126,22 +153,6 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
 
   return (
     <>
-      {/* 屏幕外卡片，html2canvas 截图目标 */}
-      <div
-        ref={cardRef}
-        style={{ position: 'absolute', left: -9999, top: 0, width: 1080, pointerEvents: 'none' }}
-      >
-        <ShareCard
-          title={title}
-          content={content}
-          cardColor={cardColor}
-          cardTextColor={cardTextColor}
-          hasImage={hasImage}
-          imageUrl={imageUrl}
-          createdAt={createdAt}
-        />
-      </div>
-
       <button
         onClick={copyLink}
         style={btn}
@@ -171,14 +182,12 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
           >
             ✕
           </button>
-
           <div style={{ flex: 1, overflowY: 'auto', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12, padding: '52px 16px 16px' }}>
             {tiles.map((t, i) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img key={i} src={t.url} alt={`分享卡片 ${i + 1}`} style={{ maxWidth: '100%', display: 'block', borderRadius: 4 }} />
             ))}
           </div>
-
           <div style={{ width: '100%', padding: '12px 24px 32px', background: 'rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
             <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, margin: 0, fontFamily: 'monospace' }}>
               {tiles.length > 1 ? `长文已分为 ${tiles.length} 张，可逐张长按保存` : '手机可长按图片保存到相册'}

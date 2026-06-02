@@ -1,22 +1,6 @@
-const SERIF = "'Noto Serif SC', Georgia, 'Times New Roman', serif"
+import { processContent } from '@/lib/paginate'
 
-function processContent(html: string): string {
-  return html
-    .replace(/<blockquote>/gi, '<div style="border-left:3px solid currentColor;padding-left:20px;opacity:0.7;margin:16px 0;">')
-    .replace(/<\/blockquote>/gi, '</div>')
-    .replace(/<hr\s*\/?>/gi, '<div style="height:1px;background:currentColor;opacity:0.15;margin:24px 0;"></div>')
-    .replace(/<strong>/gi, '<span style="font-weight:600;">')
-    .replace(/<\/strong>/gi, '</span>')
-    .replace(/<em>/gi, '<span style="font-style:italic;">')
-    .replace(/<\/em>/gi, '</span>')
-    .replace(/<h[1-6][^>]*>/gi, '<div style="font-size:1.2em;font-weight:500;margin:16px 0 8px;">')
-    .replace(/<\/h[1-6]>/gi, '</div>')
-    .replace(/<ul>/gi, '<div style="margin:8px 0;">')
-    .replace(/<\/ul>/gi, '</div>')
-    .replace(/<li>/gi, '<div style="margin:4px 0;">· ')
-    .replace(/<\/li>/gi, '</div>')
-    .replace(/<img[^>]+>/gi, '')
-}
+const SERIF = "'Noto Serif SC', Georgia, 'Times New Roman', serif"
 
 interface Props {
   title: string | null
