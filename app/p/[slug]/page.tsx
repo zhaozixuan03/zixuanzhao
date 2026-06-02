@@ -70,14 +70,8 @@ export default async function PostPage({ params, searchParams }: Props) {
               postId={post.id}
               slug={post.slug}
               title={post.title}
-              content={post.content}
-              cardColor={post.card_color}
-              cardTextColor={post.card_text_color}
               visibility={post.visibility}
               isOwner={authed}
-              hasImage={(post.image_urls?.length || 0) > 0}
-              imageUrl={post.image_urls?.[0]}
-              createdAt={post.created_at}
             />
           </div>
 
