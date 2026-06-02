@@ -14,12 +14,16 @@ interface Props {
 }
 
 const SERIF = "'Noto Serif SC', Georgia, 'Times New Roman', serif"
-const MAX_AREA = 16_000_000
-const MAX_DIM = 8192
+
+function getBlob(canvas: HTMLCanvasElement, type: string, quality?: number): Promise<Blob | null> {
+  return new Promise(resolve => canvas.toBlob(resolve, type, quality))
+}
 
 export default function ShareButtons({ slug, title, content, cardColor, cardTextColor, hasImage, imageUrl, createdAt }: Props) {
   const [copying, setCopying] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [previewBlob, setPreviewBlob] = useState<Blob | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
 
   const logShare = (share_type: string) =>
@@ -32,17 +36,47 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
     logShare('link')
   }
 
+  const closePreview = () => {
+    if (previewUrl) URL.revokeObjectURL(previewUrl)
+    setPreviewUrl(null)
+    setPreviewBlob(null)
+  }
+
+  const handleDownload = () => {
+    if (!previewUrl) return
+    const a = document.createElement('a')
+    a.href = previewUrl
+    a.download = `${title || 'zorazhao'}.png`
+    a.click()
+  }
+
+  const handleShare = async () => {
+    if (!previewBlob) return
+    const file = new File([previewBlob], `${title || 'zorazhao'}.png`, { type: 'image/png' })
+    try {
+      if (navigator.canShare?.({ files: [file] })) {
+        await navigator.share({ files: [file] })
+      }
+    } catch (e) {
+      console.warn('分享取消或失败:', e)
+    }
+  }
+
   const saveImage = async () => {
     if (!cardRef.current) return
     setSaving(true)
     try {
+      // Device-aware canvas limits (must be inside function — navigator unavailable during SSR)
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1
+      const MAX_DIM  = isMobile ? 4096 : 16384
+      const MAX_AREA = isMobile ? 16_777_216 : 268_000_000
+
       const card = cardRef.current
       card.style.opacity = '1'
       card.style.width = '1080px'
       card.style.maxHeight = 'none'
       card.style.overflow = 'visible'
 
-      // Wait for fonts used in the actual content
       const sampleText = (title || '') + ' ' + card.innerText.slice(0, 200)
       await Promise.all([
         document.fonts.load(`400 40px 'Noto Serif SC'`, sampleText),
@@ -66,8 +100,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
           MAX_DIM / width
         )
       )
-
-      console.log('卡片高度:', totalHeight, '缩放比:', scale.toFixed(2))
+      console.log('高度:', totalHeight, '缩放:', scale.toFixed(2), '设备:', isMobile ? 'mobile' : 'desktop')
 
       const canvas = await html2canvas(card, {
         scale,
@@ -87,22 +120,13 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
 
       card.style.opacity = '0'
 
-      let dataUrl = ''
-      try {
-        dataUrl = canvas.toDataURL('image/png')
-      } catch {
-        try {
-          dataUrl = canvas.toDataURL('image/jpeg', 0.9)
-        } catch {
-          throw new Error('无法导出图片，可能有跨域内容')
-        }
-      }
-      if (!dataUrl || dataUrl === 'data:,') throw new Error('内容过长，导出失败，请尝试缩短或分段保存')
+      let blob = await getBlob(canvas, 'image/png')
+      if (!blob) blob = await getBlob(canvas, 'image/jpeg', 0.9)
+      if (!blob) throw new Error('内容过长，导出失败，请尝试缩短或分段保存')
 
-      const link = document.createElement('a')
-      link.download = `${title || 'zorazhao'}.png`
-      link.href = dataUrl
-      link.click()
+      const url = URL.createObjectURL(blob)
+      setPreviewBlob(blob)
+      setPreviewUrl(url)
       logShare('image')
     } catch (e) {
       if (cardRef.current) cardRef.current.style.opacity = '0'
@@ -133,7 +157,7 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
 
   return (
     <>
-      {/* 分享卡片：屏幕外渲染，截图时临时设 opacity:1 */}
+      {/* 屏幕外卡片，opacity 切换控制可见性 */}
       <div
         ref={cardRef}
         style={{
@@ -182,15 +206,12 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
         />
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: 64, paddingTop: 32, borderTop: `1px solid ${cardTextColor}20` }}>
-          <div style={{ fontFamily: 'Courier New, monospace', fontSize: 22, opacity: 0.4, letterSpacing: '0.06em' }}>
-            zorazhao.com
-          </div>
-          <div style={{ fontFamily: 'Courier New, monospace', fontSize: 20, opacity: 0.3 }}>
-            {dateStr}
-          </div>
+          <div style={{ fontFamily: 'Courier New, monospace', fontSize: 22, opacity: 0.4, letterSpacing: '0.06em' }}>zorazhao.com</div>
+          <div style={{ fontFamily: 'Courier New, monospace', fontSize: 20, opacity: 0.3 }}>{dateStr}</div>
         </div>
       </div>
 
+      {/* 操作按钮 */}
       <button
         onClick={copyLink}
         style={{ fontSize: 12, fontFamily: 'monospace', color: '#aaa', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
@@ -207,6 +228,50 @@ export default function ShareButtons({ slug, title, content, cardColor, cardText
       >
         {saving ? '生成中…' : '保存为图片'}
       </button>
+
+      {/* 预览浮层 */}
+      {previewUrl && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.88)', zIndex: 9999, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          onClick={e => { if (e.target === e.currentTarget) closePreview() }}
+        >
+          <button
+            onClick={closePreview}
+            style={{ position: 'absolute', top: 16, right: 20, color: 'white', background: 'none', border: 'none', fontSize: 22, cursor: 'pointer', lineHeight: 1, padding: 4 }}
+          >
+            ✕
+          </button>
+
+          <div style={{ flex: 1, overflowY: 'auto', width: '100%', display: 'flex', justifyContent: 'center', padding: '52px 16px 16px' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewUrl}
+              alt="分享卡片"
+              style={{ maxWidth: '100%', display: 'block', borderRadius: 4 }}
+            />
+          </div>
+
+          <div style={{ width: '100%', padding: '12px 24px 32px', background: 'rgba(0,0,0,0.6)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: 12, margin: 0, fontFamily: 'monospace' }}>
+              手机可长按图片保存到相册
+            </p>
+            <div style={{ display: 'flex', gap: 12 }}>
+              <button
+                onClick={handleDownload}
+                style={{ fontSize: 13, fontFamily: 'monospace', color: 'white', background: 'rgba(255,255,255,0.12)', border: '0.5px solid rgba(255,255,255,0.25)', borderRadius: 20, padding: '7px 20px', cursor: 'pointer' }}
+              >
+                下载
+              </button>
+              <button
+                onClick={handleShare}
+                style={{ fontSize: 13, fontFamily: 'monospace', color: 'white', background: 'rgba(255,255,255,0.12)', border: '0.5px solid rgba(255,255,255,0.25)', borderRadius: 20, padding: '7px 20px', cursor: 'pointer' }}
+              >
+                分享
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
