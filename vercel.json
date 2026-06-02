@@ -1,11 +1,5 @@
 {
-  "functions": {
-    "app/api/card/[slug]/route.ts": { "memory": 1769, "maxDuration": 60 }
-  },
   "crons": [
-    {
-      "path": "/api/monthly-summary",
-      "schedule": "0 9 1 * *"
-    }
+    { "path": "/api/monthly-summary", "schedule": "0 9 1 * *" }
   ]
 }

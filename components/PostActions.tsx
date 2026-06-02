@@ -8,9 +8,15 @@ interface Props {
   title: string | null
   visibility: string
   isOwner: boolean
+  content: string
+  cardColor: string
+  cardTextColor: string
+  hasImage: boolean
+  imageUrl?: string
+  createdAt: string
 }
 
-export default function PostActions({ postId, slug, title, visibility, isOwner }: Props) {
+export default function PostActions({ postId, slug, title, visibility, isOwner, content, cardColor, cardTextColor, hasImage, imageUrl, createdAt }: Props) {
   const showActions = isOwner || visibility === 'public'
   if (!showActions) return null
 
@@ -30,7 +36,16 @@ export default function PostActions({ postId, slug, title, visibility, isOwner }
         </>
       )}
       {visibility === 'public' && (
-        <ShareButtons slug={slug} title={title} />
+        <ShareButtons
+          slug={slug}
+          title={title}
+          content={content}
+          cardColor={cardColor}
+          cardTextColor={cardTextColor}
+          hasImage={hasImage}
+          imageUrl={imageUrl}
+          createdAt={createdAt}
+        />
       )}
     </div>
   )
