@@ -59,6 +59,8 @@ body {
   padding-left: 1.5em;
   margin-bottom: 1em;
 }
+.tiptap ul { list-style: disc; }
+.tiptap ol { list-style: decimal; }
 .tiptap li { margin-bottom: 0.3em; line-height: 1.7; }
 .tiptap a { color: var(--green-deep); text-decoration: underline; }
 .tiptap p.is-editor-empty:first-child::before {
@@ -82,6 +84,10 @@ body {
 .document-canvas p { margin-bottom: 1.2em; line-height: 1.9; }
 .document-canvas h1 { font-size: 1.65em; font-weight: 500; margin: 1.7em 0 0.6em; }
 .document-canvas h2 { font-size: 1.3em; font-weight: 500; margin: 1.5em 0 0.5em; }
+.document-canvas ul, .document-canvas ol { padding-left: 1.5em; margin: 0 0 1.2em; }
+.document-canvas ul { list-style: disc; }
+.document-canvas ol { list-style: decimal; }
+.document-canvas li { margin-bottom: 0.35em; line-height: 1.85; }
 .document-add-button {
   position: absolute;
   left: 0;
@@ -181,6 +187,10 @@ body {
 .post-content h2 { font-size: 1.2em; font-weight: 500; margin: 2em 0 0.6em; font-family: -apple-system, sans-serif; }
 .post-content img { max-width: 100%; border-radius: 8px; margin: 2em 0; display: block; }
 .post-content blockquote { border-left: 3px solid var(--green-pale); padding-left: 1.25rem; color: #666; margin: 1.5em 0; }
+.post-content ul, .post-content ol { padding-left: 1.5em; margin: 0 0 1.4em; }
+.post-content ul { list-style: disc; }
+.post-content ol { list-style: decimal; }
+.post-content li { margin-bottom: 0.35em; }
 .post-content a { color: var(--green-deep); }
 
 /* Warmer border override */

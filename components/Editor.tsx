@@ -40,18 +40,64 @@ export default function Editor({ content = '', onChange, placeholder = '写点�
   const [slashOpen, setSlashOpen] = useState(false)
   const [slashQuery, setSlashQuery] = useState('')
   const [bubblePosition, setBubblePosition] = useState<{ left: number; top: number } | null>(null)
+  const [uploading, setUploading] = useState(false)
+
+  async function compressImage(file: File, maxSizeMB = 2): Promise<File> {
+    if (file.size < maxSizeMB * 1024 * 1024) return file
+
+    return new Promise((resolve, reject) => {
+      const image = new window.Image()
+      const objectUrl = URL.createObjectURL(file)
+      image.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ratio = Math.min(1, Math.sqrt((maxSizeMB * 1024 * 1024) / file.size))
+        canvas.width = image.width * ratio
+        canvas.height = image.height * ratio
+        const context = canvas.getContext('2d')
+        if (!context) {
+          URL.revokeObjectURL(objectUrl)
+          reject(new Error('无法处理图片'))
+          return
+        }
+        context.drawImage(image, 0, 0, canvas.width, canvas.height)
+        canvas.toBlob(blob => {
+          URL.revokeObjectURL(objectUrl)
+          if (!blob) {
+            reject(new Error('无法压缩图片'))
+            return
+          }
+          resolve(new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type: 'image/jpeg' }))
+        }, 'image/jpeg', 0.85)
+      }
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
+        reject(new Error('无法读取图片'))
+      }
+      image.src = objectUrl
+    })
+  }
 
   async function uploadImage(file: File) {
+    if (!file.type.startsWith('image/')) {
+      alert('请选择图片文件')
+      return
+    }
+    setUploading(true)
     const formData = new FormData()
-    formData.append('file', file)
 
     try {
+      formData.append('file', await compressImage(file))
       const res = await fetch('/api/upload', { method: 'POST', body: formData })
-      const { url } = await res.json()
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || '上传服务暂时不可用')
+      const { url } = data
       if (!url) throw new Error('missing upload URL')
       editor?.chain().focus().setImage({ src: url }).run()
-    } catch {
-      alert('图片上传失败，请重试')
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '请重试'
+      alert(`图片上传失败：${message}`)
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -188,9 +234,9 @@ export default function Editor({ content = '', onChange, placeholder = '写点�
           <button type="button" onClick={() => editor.chain().focus().toggleBlockquote().run()} className={editor.isActive('blockquote') ? 'active' : ''} aria-label="引用"><Quote size={15} /></button>
           <button type="button" onClick={() => editor.chain().focus().setHorizontalRule().run()} aria-label="分隔线"><SeparatorHorizontal size={15} /></button>
           <button type="button" onClick={setLink} className={editor.isActive('link') ? 'active' : ''} aria-label="链接"><LinkIcon size={15} /></button>
-          <button type="button" onClick={() => fileInputRef.current?.click()} aria-label="图片"><ImageIcon size={15} /></button>
+          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} aria-label="图片"><ImageIcon size={15} /></button>
         </div>
-        <span>{editor.getText().trim().length} 字</span>
+        <span>{uploading ? '图片上传中…' : `${editor.getText().trim().length} 字`}</span>
       </div>
 
       <input
